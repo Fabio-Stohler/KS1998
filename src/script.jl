@@ -3,13 +3,13 @@ Solution to Krusell and Smith (1998) from Fabio Stohler
 """
 
 # setting the correct working directory
-cd("./src")
+# cd("./src")
 
 # importing all necessary libraries
 using QuantEcon
 using Random
-using Interpolations
-using LinearAlgebra
+using Interpolations, GLM
+using LinearAlgebra, Statistics
 
 # function to set all parameters
 function gen_params()
@@ -49,7 +49,7 @@ function shocks_parameters()
     er_b = (1 - ur_b)       # employment rate in a bad aggregate state
     ur_g = 0.04             # unemployment rate in a good aggregate state
     er_g = (1 - ur_g)       # employment rate in a good aggregate state
-    ϵ = range(0, nstates_id - 1)
+    ϵ = range(0.0, nstates_id - 1.0)
     δ_a = 0.01
     a = [1 - δ_a, 1 + δ_a]
     Π = Array(
@@ -104,6 +104,8 @@ function shocks()
     return id_shock, ag_shock
 end
 
+
+id_shock, ag_shock = shocks()
 
 function convergence_parameters(nstates_ag = 2)
     dif_B = 10^10 # difference between coefficients B of ALM on succ. iter.
@@ -268,3 +270,127 @@ function individual(k_prime, B)
     return iterate_policy(k_prime)
 end
 
+
+# Compute aggregate state
+function aggregate_st(k_cross, k_prime, id_shock, ag_shock)
+    N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk, ngridkm = gen_grid()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    km_series = zeros(T)
+    for t in range(1, length=T)
+        """
+        find t-th obs. by computing mean of t-th period cross sectional
+        distribution of capital
+        """
+        km_series[t] = mean(k_cross)
+        km_series[t] = min.(km_series[t], km_max)
+        km_series[t] = max.(km_series[t], km_min)
+        """
+        To find km_series[t+1], we should compute a new cross sectional distribution
+        at t+1.
+        1) Find k_prime by interpolation for realized km_series[t] and agg. shock
+        2) Compute new kcross by interpolation given previous kcross and id.shock
+        """
+        # Stack sampling points for interpolation as len(k)*len(epsilon) x 4
+        # arr stores the coordinates of the sampling points: k rows, 4 columns
+        ip = [repeat(k, inner = 2) repeat([km_series[t]], inner = 2*length(k)) repeat([ag_shock[t].-1.0], inner = 2*length(k)) repeat(epsilon, outer = length(k))]
+
+        # Interpolating
+        nodes = (k, km, epsilon, epsilon)
+        values = reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id))
+        itp = interpolate(nodes, values, Gridded(Linear()))
+        k_prime_t4 = zeros(nstates_id*length(k))
+        for i in eachindex(k_prime_t4)
+            k_prime_t4[i] = itp(ip[i, 1], ip[i, 2], ip[i, 3], ip[i, 4])
+        end
+        k_prime_t4 = reshape(k_prime_t4, (ngridk, nstates_id))
+        # 4-dimensional capital function at time t is obtained by fixing known
+        # km_series[t] and ag_shock
+        ip2 = [k_cross id_shock[t, :]]
+        """
+        given k_cross and idiosyncratic shocks, compute k_cross_n
+        """
+        ip2 = [k_cross id_shock[t, :].-1]
+        
+        nodes = (k, epsilon)
+        values = reshape(k_prime_t4, (ngridk, nstates_id))
+        itp2 = interpolate(nodes, values, Gridded(Linear()))
+        expl2 = extrapolate(itp2, Line())
+        k_cross_n = zeros(length(k_cross))
+        for i in eachindex(k_cross_n)
+            k_cross_n[i] = expl2(ip2[i, 1], ip2[i, 2])
+        end
+        # restrict k_cross to be within [k_min, k_max]
+        k_cross_n = min.(k_cross_n, k_max)
+        k_cross_n = max.(k_cross_n, k_min)
+        k_cross = k_cross_n
+    end
+    return km_series, k_cross
+end
+
+
+# Solve it!
+function solve_ALM()
+    # generate shocks, grid, parameters, and convergence parameters
+    id_shock, ag_shock = shocks()
+    (N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,
+        ngridkm) = gen_grid()
+    alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
+    
+    k_prime = 0.9*k
+    n = ngridk*ngridkm*nstates_ag*nstates_id
+    k_prime = reshape(k_prime, (length(k_prime), 1, 1, 1))
+    k_prime = ones((ngridk, ngridkm, nstates_ag, nstates_id)) .* k_prime
+    k_prime = reshape(k_prime, n)
+    k_cross = repeat([k_ss], N)
+    """
+    Main loop
+    Solve for HH problem given ALM
+    Generate time series km_ts given policy function
+    Run regression and update ALM
+    Iterate until convergence
+    """
+    iteration = 0
+    while dif_B > criter_B && iteration < 30
+        # Solve for HH policy functions at a given law of motion
+        k_prime, c = individual(k_prime, B)
+
+        # Generate time series and cross section of capital
+        km_ts, k_cross_1 = aggregate_st(k_cross, k_prime, id_shock, ag_shock)
+        println(mean(km_ts[burn_in:end-1]))
+        """
+        run regression: log(km') = B[j,1]+B[j,2]log(km) for aggregate state
+        """
+        x = log.(km_ts[burn_in:end-1])[:]
+        X = Array([ones(length(x)) (ag_shock.-1)[burn_in:end-1] x (ag_shock .- 1.0)[burn_in:end-1].*x])
+        y = log.(km_ts[(burn_in+1):end])[:]
+        ols = lm(X, y)
+        B_new = coef(ols) #inv(X'*X)*(X'*y) 
+        B_mat = reshape([B_new[1], B_new[3], B_new[1]+B_new[2], B_new[3]+B_new[4]],(2, 2))'
+        dif_B = norm(B_mat-B)
+        println("Iteration: ", iteration)
+        println("Error: ", dif_B)
+        println("Coefficients: ", round.(B_mat[:], digits = 4))
+        println(" ")
+
+
+        """
+        To ensure that the initial capital distribution comes from the ergodic set,
+        we use the terminal distribution of the current iteration as the initial distribution for
+        subsequent iterations.
+
+        When the solution is sufficiently accurate, we stop the updating and hold the distribution
+        k_cross fixed for the remaining iterations
+        """
+        if dif_B > (criter_B*100)
+            k_cross = k_cross_1 #replace cross-sectional capital distribution
+        end
+        B = B_mat .* update_B .+ B .* (1 .- update_B) #update the vector of ALM coefficients
+        iteration += 1        
+    end
+    return B, km_ts, k_cross, k_prime, c, id_shock, ag_shock
+end
+
+# Solving the Krusell-Smith model
+B, km_ts, k_cross, k_prime, c, id_shock, ag_shock = @time solve_ALM();
