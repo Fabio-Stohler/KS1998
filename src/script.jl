@@ -3,11 +3,11 @@ Solution to Krusell and Smith (1998) from Fabio Stohler
 """
 
 # setting the correct working directory
-# cd("./src")
+cd("./src")
 
 # importing all necessary libraries
 using QuantEcon
-using Random
+using Random, Dierckx
 using Interpolations, GLM
 using LinearAlgebra, Statistics
 
@@ -105,7 +105,6 @@ function shocks()
 end
 
 
-id_shock, ag_shock = shocks()
 
 function convergence_parameters(nstates_ag = 2)
     dif_B = 10^10 # difference between coefficients B of ALM on succ. iter.
@@ -305,7 +304,7 @@ function aggregate_st(k_cross, k_prime, id_shock, ag_shock)
         k_prime_t4 = reshape(k_prime_t4, (ngridk, nstates_id))
         # 4-dimensional capital function at time t is obtained by fixing known
         # km_series[t] and ag_shock
-        ip2 = [k_cross id_shock[t, :]]
+        # ip2 = [k_cross id_shock[t, :]]
         """
         given k_cross and idiosyncratic shocks, compute k_cross_n
         """
@@ -332,8 +331,8 @@ end
 function solve_ALM()
     # generate shocks, grid, parameters, and convergence parameters
     id_shock, ag_shock = shocks()
-    (N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,
-        ngridkm) = gen_grid()
+    N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,
+        ngridkm = gen_grid()
     alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
     B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
@@ -344,6 +343,8 @@ function solve_ALM()
     k_prime = ones((ngridk, ngridkm, nstates_ag, nstates_id)) .* k_prime
     k_prime = reshape(k_prime, n)
     k_cross = repeat([k_ss], N)
+    km_ts = zeros(T)
+    c = zeros(n)
     """
     Main loop
     Solve for HH problem given ALM
@@ -384,9 +385,9 @@ function solve_ALM()
         k_cross fixed for the remaining iterations
         """
         if dif_B > (criter_B*100)
-            k_cross = k_cross_1 #replace cross-sectional capital distribution
+            k_cross = k_cross_1 # replace cross-sectional capital distribution
         end
-        B = B_mat .* update_B .+ B .* (1 .- update_B) #update the vector of ALM coefficients
+        B = B_mat .* update_B .+ B .* (1 .- update_B) # update the vector of ALM coefficients
         iteration += 1        
     end
     return B, km_ts, k_cross, k_prime, c, id_shock, ag_shock
@@ -394,3 +395,8 @@ end
 
 # Solving the Krusell-Smith model
 B, km_ts, k_cross, k_prime, c, id_shock, ag_shock = @time solve_ALM();
+
+
+
+
+# Fix the aggregation and moving forward
