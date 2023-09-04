@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.4"
+julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "cc620d61090a0edab55777e57aef200398c53037"
+project_hash = "7045c1736413649f1dc6c5d1acf8ad18eaeddf6d"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -222,7 +222,7 @@ version = "4.3.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.0.1+0"
+version = "0.5.2+0"
 
 [[deps.CompositionsBase]]
 git-tree-sha1 = "455419f7e328a1a2493cabc6428d79e951349769"
@@ -297,6 +297,18 @@ deps = ["InverseFunctions", "Test"]
 git-tree-sha1 = "80c3e8639e3353e5d2912fb3a1916b8455e2494b"
 uuid = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
 version = "0.4.0"
+
+[[deps.Dierckx]]
+deps = ["Dierckx_jll"]
+git-tree-sha1 = "d1ea9f433781bb6ff504f7d3cb70c4782c504a3a"
+uuid = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
+version = "0.5.3"
+
+[[deps.Dierckx_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "6596b96fe1caff3db36415eeb6e9d3b50bfe40ee"
+uuid = "cd4c43a9-7502-52ba-aa6d-59fb2a88580b"
+version = "0.1.0+0"
 
 [[deps.DiffResults]]
 deps = ["StaticArraysCore"]
