@@ -340,6 +340,8 @@ print(end - start)
 
 
 
+
+
 # Figure comparing implied law of motion for aggregate capital stock and
 # actual law of motion
 def accuracy_figure(km_ts, ag_shock):
@@ -358,6 +360,7 @@ def accuracy_figure(km_ts, ag_shock):
     plt.show()
 
     print('Norm between the two series: ', np.linalg.norm(km_ts-km_alm))
+    print(km_ts - km_alm)
 
 # Plot the law of motion for aggregate capital stock
 accuracy_figure(km_ts, ag_shock)
