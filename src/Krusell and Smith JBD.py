@@ -194,6 +194,7 @@ def individual(k_prime, B):
                 for j in range(nstates_id):
                     # capital in aggregate state i, idiosyncratic state j as a function of current states
                     k2_prime[:, i, j] = RectBivariateSpline(k, km, k_prime_reshape[:, :, i, j]).ev(k_prime_reshape, K_prime_reshape).reshape(n)
+
                     c_prime[:, i, j] = (irate[:, i]*k_prime + replacement[j]*(wage[:, i])
                     +(1-delta)*k_prime-k2_prime[:, i, j]-tax[:, i, j])
                     # replace negative consumption by very low positive number
@@ -228,8 +229,7 @@ def individual(k_prime, B):
 
 # Compute aggregate state
 def aggregate_st(k_cross, k_prime, id_shock, ag_shock):
-    (N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,
-     ngridkm) = gen_grid()
+    (N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,ngridkm) = gen_grid()
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
     km_series = np.zeros((T,1))
     for t in range(T):
@@ -252,16 +252,21 @@ def aggregate_st(k_cross, k_prime, id_shock, ag_shock):
         interp_points = np.rollaxis(interp_points, 0, 5)
         interp_points = interp_points.reshape((len(k)*len(epsilon), 4))
 
-        k_prime_t4 = interpn(points=(k, km, epsilon, epsilon), values=k_prime.reshape(ngridk, ngridkm, nstates_ag, nstates_id),
-                             xi=interp_points).reshape(ngridk, nstates_id)
+        k_prime_t4 = interpn(
+            points=(k, km, epsilon, epsilon), 
+            values=k_prime.reshape(ngridk, ngridkm, nstates_ag, nstates_id),                    xi=interp_points).reshape(ngridk, nstates_id
+            )
         # 4-dimensional capital function at time t is obtained by fixing known
         # km_series[t] and ag_shock
         interp_points = np.vstack((k_cross, id_shock[t,:])).T
         """
         given k_cross and idiosyncratic shocks, compute k_cross_n
         """
-        k_cross_n = interpn(points=(k, epsilon), values= k_prime_t4.reshape(ngridk, nstates_id),
-                            xi= interp_points)
+        k_cross_n = interpn(
+            points=(k, epsilon), 
+            values= k_prime_t4.reshape(ngridk, nstates_id),
+            xi= interp_points
+            )
         # restrict k_cross to be within [k_min, k_max]
         k_cross_n = np.minimum(k_cross_n, k_max)
         k_cross_n = np.maximum(k_cross_n, k_min)
@@ -352,6 +357,11 @@ def accuracy_figure(km_ts, ag_shock):
     ax.legend(loc='best')
     plt.show()
 
+    print('Norm between the two series: ', np.linalg.norm(km_ts-km_alm))
+
+# Plot the law of motion for aggregate capital stock
+accuracy_figure(km_ts, ag_shock)
+plt.show()
 
 #Capital accumulation policy function
 
@@ -377,8 +387,4 @@ def plot_policy(k_prime, km_ts):
     
 # Calling the function
 plot_policy(k_prime, km_ts)
-plt.show()
-
-# Plot the law of motion for aggregate capital stock
-accuracy_figure(km_ts, ag_shock)
 plt.show()
