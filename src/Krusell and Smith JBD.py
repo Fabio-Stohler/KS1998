@@ -347,9 +347,11 @@ print(end - start)
 def accuracy_figure(km_ts, ag_shock):
     T = len(km_ts)
     km_alm = np.zeros((T))
+    k_diff = np.zeros((T))
     km_alm[0] = km_ts[0]
     for i in range(0, T-1):
         km_alm[i+1] = np.exp(B[ag_shock[i], 0] + B[ag_shock[i], 1]*np.log(km_alm[i]))
+        k_diff[i+1] = km_ts[i+1]-km_alm[i+1]
 
     fig, ax = plt.subplots(figsize=(9, 6))
     ax.plot(km_ts, label='Implied by policy rule')
@@ -359,8 +361,7 @@ def accuracy_figure(km_ts, ag_shock):
     ax.legend(loc='best')
     plt.show()
 
-    print('Norm between the two series: ', np.linalg.norm(km_ts-km_alm))
-    print(km_ts - km_alm)
+    print('Norm between the two series: ', np.linalg.norm(k_diff))
 
 # Plot the law of motion for aggregate capital stock
 accuracy_figure(km_ts, ag_shock)
