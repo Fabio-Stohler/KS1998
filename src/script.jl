@@ -513,8 +513,8 @@ function solve_ALM(plotting = false, plotting_check = false)
             for t in range(2, length = T - 1)
                 k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(km_ts[t-1]))
             end
-            plot(km_ts, label = "Model")
-            plot!(k_alm, label = "ALM")
+            plot(km_ts[end-200:end], label = "Model")
+            plot!(k_alm[end-200:end], label = "ALM")
             display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
         end
         B = B_mat .* update_B .+ B .* (1 .- update_B) # update the vector of ALM coefficients
@@ -537,7 +537,7 @@ function solve_ALM(plotting = false, plotting_check = false)
     end
     return B,
     km_ts,
-    k_pred,
+    k_alm,
     distr,
     reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id)),
     reshape(c, (ngridk, ngridkm, nstates_ag, nstates_id)),
