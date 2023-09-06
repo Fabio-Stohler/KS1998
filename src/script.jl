@@ -476,25 +476,38 @@ function solve_ALM(plotting = false)
         k_cross fixed for the remaining iterations
         """
         # if dif_B > (criter_B*100)
-        distr = distr1 # replace cross-sectional capital distribution
+        distr = copy(distr1) # replace cross-sectional capital distribution
         # end
+        
+        # Plotting the results
+        if plotting_check
+            # Generate time series of capital
+            k_alm = zeros(T)
+            k_alm[1] = km_ts[1]
+            for t in range(2, length=T-1)
+                k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(km_ts[t-1]))
+            end
+            plot(km_ts, label = "Model")
+        plot!(k_alm, label = "ALM")
+        display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
+        end
         B = B_mat .* update_B .+ B .* (1 .- update_B) # update the vector of ALM coefficients
-        iteration += 1        
+        iteration += 1   
     end
 
+    # Generate time series of capital
+    k_alm = zeros(T)
+    k_alm[1] = km_ts[1]
+    for t in range(2, length=T-1)
+        k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(km_ts[t-1]))
+    end
     if plotting
-        # Generate time series of capital
-        k_pred = zeros(T)
-        k_pred[1] = km_ts[1]
-        for t in range(2, length=T-1)
-            k_pred[t] = exp(B[ag_shock[t], 1] .+ B[ag_shock[t], 2] * log(k_pred[t-1]))
-        end
         # Plotting the results
-        plot(km_ts[burn_in:end], label = "Realized series")
-        plot!(k_pred[burn_in:end], label = "Predicted series")
+        plot(km_ts, label = "Realized")
+        plot!(k_alm, label = "Forecasted")
         display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
 
-        println("The norm between the two series is: ", norm(km_ts[burn_in:end] .- k_pred[burn_in:end]))
+        println("The norm between the two series is: ", norm(km_ts .- k_alm))
     end
     return B, km_ts, distr, reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id)), reshape(c, (ngridk, ngridkm, nstates_ag, nstates_id)), id_shock, ag_shock
 end
