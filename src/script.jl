@@ -406,12 +406,6 @@ function aggregate_st(
     for t in range(1, length=T-1)
         dPrime = maketransition(k_star, km_ts[t], ag_shock[t], distr, prob)
         km_ts[t+1] = sum(sum(dPrime, dims=2) .* k) # aggregate capital in t+1
-        
-        # if t % 100 == 0
-        #     println("iteration: ", t, " with sum ", sum(dPrime))
-        #     println(km_ts[t+1])
-        #     println(" ")
-        # end
         distr = dPrime
     end
     return km_ts, distr
@@ -437,7 +431,7 @@ end
 
 
 # Solve it!
-function solve_ALM(plotting = false)
+function solve_ALM(plotting = false, plotting_check = false)
     # generate shocks, grid, parameters, and convergence parameters
     id_shock, ag_shock = shocks()
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,
@@ -474,7 +468,11 @@ function solve_ALM(plotting = false)
     iteration = 1
     while dif_B > criter_B && iteration < 100
         # Solve for HH policy functions at a given law of motion
-        k_prime, c = individual(k_prime, B)
+        k_prime1, c = individual(k_prime, B)
+
+        # Save difference in policy functions
+        dif_pol = norm(k_prime1 - k_prime)
+        k_prime = copy(k_prime1)
 
         # Generate time series and cross section of capital
         km_ts, distr1 = aggregate_st(distr, k_prime, ag_shock)
@@ -492,12 +490,14 @@ function solve_ALM(plotting = false)
         
         # if iteration % 100 == 0
         println("Iteration: ", iteration)
-            println("Average capital: ", mean(km_ts[burn_in:end-1]))
+            println("Average capital: ", round(mean(km_ts[burn_in:end]), digits=5))
             println("Error: ", dif_B)
-            println("Coefficients: ", round.(B_mat[:], digits = 4))
+            println("Error in pol. fcn.: ", dif_pol)
+            # println("Pure coefficients: ", B_new)
+            # println("Coefficients: ", B_mat)
+            println("R²: ", round(r2(ols), digits=5))
             println(" ")
         # end
-
 
         """
         To ensure that the initial capital distribution comes from the ergodic set,
@@ -547,3 +547,4 @@ end
 # Solving the Krusell-Smith model
 B, km_ts, k_pred, distr, k_prime, c, id_shock, ag_shock = @time solve_ALM(true, true);
 
+# Compare coefficients between codes
