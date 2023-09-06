@@ -29,12 +29,12 @@ function gen_grid()
     N = 10000       # number of agents for stochastic simulation
     J = 1000        # number of grid points for stochastic simulation
     k_min = 0
-    k_max = 300
-    burn_in = 500
+    k_max = 250
+    burn_in = 100
     T = 1000 + burn_in
     ngridk = 100
     x = range(0, 0.5, ngridk)
-    τ = 7
+    τ = 2
     y = (x ./ maximum(x)) .^ τ
     km_min = 30
     km_max = 50
@@ -148,12 +148,12 @@ end
 function convergence_parameters(nstates_ag = 2)
     dif_B = 10^10 # difference between coefficients B of ALM on succ. iter.
     ϵ_k = 1e-8
-    ϵ_B = 1e-8
+    ϵ_B = 1e-6
     update_k = 0.77
     update_B = 0.3
     B = zeros(nstates_ag, nstates_ag)
-    B[:, 1] .= 0.1
-    B[:, 2] .= 0.9
+    B[:, 1] .= 0.0
+    B[:, 2] .= 1.0
     return B, dif_B, ϵ_k, ϵ_B, update_k, update_B
 end
 
@@ -177,8 +177,11 @@ function iterate_policy(
     replacement = Array([mu, l_bar]) #replacement rate of wage
     n = ngridk * ngridkm * nstates_ag * nstates_id
 
+    # Convergence parameters
     dif_k = 1
-    while dif_k > criter_k
+    iter_k = 1
+    iter_k_max = 20000
+    while dif_k > criter_k && iter_k < iter_k_max
         """
             interpolate policy function k'=k(k, km) in new points (k', km')
         """
@@ -211,6 +214,7 @@ function iterate_policy(
                 )
             end
         end
+
         # replace negative consumption by very low positive number
         c_prime = max.(c_prime, 10^(-10))
         mu_prime = c_prime .^ (-gamma)
@@ -244,6 +248,10 @@ function iterate_policy(
         """
         dif_k = norm(k_prime_n - k_prime)
         k_prime = update_k .* k_prime_n .+ (1 .- update_k) .* k_prime  # update k_prime_n
+        iter_k += 1
+    end
+    if iter_k == iter_k_max
+        println("EGM did not converge with error: ", dif_k)
     end
     c = wealth - k_prime
     return k_prime, c
@@ -259,7 +267,6 @@ function individual(k_prime, B)
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
     e = Array([er_b, er_g])
     u = 1 .- e
-    replacement = Array([mu, l_bar]) #replacement rate of wage
     #Tax rate depending on aggregate and idiosyncratic states
 
     #Transition probabilities by current state (k,km, Z, eps) and future (Z', eps')
