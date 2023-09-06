@@ -321,22 +321,22 @@ function individual(k_prime, B)
     K_prime = max.(K_prime, km_min)
 
     # Future interst rate and wage conditional on state (bad or good state)
-    irate = zeros((n, nstates_ag))
-    wage = zeros((n, nstates_ag))
+    irate_prime = zeros((n, nstates_ag))
+    wage_prime = zeros((n, nstates_ag))
     for i in range(1, nstates_ag)
-        irate[:, i] = alpha .* a[i] .* ((K_prime ./ (e[i] .* l_bar)) .^ (alpha .- 1))
-        wage[:, i] = (1 .- alpha) .* a[i] .* ((K_prime / (e[i] * l_bar)) .^ alpha)
+        irate_prime[:, i] = alpha .* a[i] .* ((K_prime ./ (e[i] .* l_bar)) .^ (alpha .- 1))
+        wage_prime[:, i] = (1 .- alpha) .* a[i] .* ((K_prime / (e[i] * l_bar)) .^ alpha)
     end
 
     # Tax rate
-    tax = zeros((n, nstates_ag, nstates_id))
+    tax_prime = zeros((n, nstates_ag, nstates_id))
     for i in range(1, nstates_ag)
         for j in range(1, nstates_id)
-            tax[:, i, j] = (j .- 1.0) .* (mu .* wage[:, i] .* u[i] ./ (1 .- u[i]))
+            tax_prime[:, i, j] = (j .- 1.0) .* (mu .* wage_prime[:, i] .* u[i] ./ (1 .- u[i]))
         end
     end
     
-    return iterate_policy(k_prime, K_prime, wealth, irate, wage, tax, P)
+    return iterate_policy(k_prime, K_prime, wealth, irate_prime, wage_prime, tax_prime, P)
 end
 
 
