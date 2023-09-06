@@ -509,9 +509,9 @@ function solve_ALM(plotting = false)
 
         println("The norm between the two series is: ", norm(km_ts .- k_alm))
     end
-    return B, km_ts, distr, reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id)), reshape(c, (ngridk, ngridkm, nstates_ag, nstates_id)), id_shock, ag_shock
+    return B, km_ts, k_pred, distr, reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id)), reshape(c, (ngridk, ngridkm, nstates_ag, nstates_id)), id_shock, ag_shock
 end
 
 # Solving the Krusell-Smith model
-B, km_ts, distr, k_prime, c, id_shock, ag_shock = @time solve_ALM(true);
+B, km_ts, k_pred, distr, k_prime, c, id_shock, ag_shock = @time solve_ALM(true, true);
 
