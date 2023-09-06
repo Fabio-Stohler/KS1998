@@ -7,9 +7,11 @@ cd("./src")
 
 # importing all necessary libraries
 using QuantEcon, Plots
-using Random, Dierckx
+using Random, Distributions, Dierckx
 using Interpolations, GLM
 using LinearAlgebra, Statistics
+using NLsolve
+
 include("./fcns/LocateFcn.jl")
 include("./fcns/fcn_makeweights.jl")
 
@@ -415,6 +417,23 @@ function aggregate_st(
     return km_ts, distr
 end
 
+# Function that generates an initial guess for the distribution
+function F_distr(distr, grid, target_mean)
+    
+    # Output for two residuals
+    residuals = zeros(3)
+    
+    # Condition one
+    residuals[1] = sum(distr .* grid) - target_mean
+
+    # Condition two
+    residuals[2] = sum(distr) - 1.0
+
+    # Condition three
+    residuals[3] = sum(distr .< 0.0) + sum(distr .> 1.0)
+    
+    return residuals
+end
 
 
 # Solve it!
@@ -428,7 +447,7 @@ function solve_ALM(plotting = false)
     B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
     
     # Initial guess for the policy function
-    k_prime = 0.5*k
+    k_prime = 0.9*k
     n = ngridk*ngridkm*nstates_ag*nstates_id
     k_prime = reshape(k_prime, (length(k_prime), 1, 1, 1))
     k_prime = ones((ngridk, ngridkm, nstates_ag, nstates_id)) .* k_prime
@@ -436,9 +455,14 @@ function solve_ALM(plotting = false)
     km_ts = zeros(T)
     c = zeros(n)
 
-    # Initial guess for the distribution
-    distr = zeros(ngridk, nstates_id)
-    distr[:, :] .= 1.0 / (ngridk * nstates_id)
+    # Finding a valid initial distribution
+    println("Finding an initial distribution")
+    distr = zeros((ngridk, nstates_id))
+    f(x) = F_distr(x, k, k_ss)
+    sol = nlsolve(f, distr)
+    distr = sol.zero / sum(sol.zero)
+    println("Initial distribution found")
+    println(" ")
 
     """
     Main loop
