@@ -99,13 +99,13 @@ function shocks_parameters()
     Π[4,3] = ur_g * π_gg / (1 - ur_g) * (1 - Π[3,3]/π_gg)
     Π[4,4] = π_gg - Π[4,3] # Π_gg10 + Π_gg11 = Π_gg
 
-    return nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π
+    return nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π, Π_ag
 end
 
 
 function shocks()
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()
-    nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π = shocks_parameters()
+    nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π, Π_aggr = shocks_parameters()
     ag_shock = zeros(T, 1)
     id_shock = zeros(T, N)
     Random.seed!(123)
@@ -113,13 +113,13 @@ function shocks()
     # Transition probabilities between aggregate states
     prob_ag = zeros((nstates_ag, nstates_ag))
     prob_ag[1, 1] = Π[1, 1] + Π[1, 2]
-    prob_ag[2, 1] = 1 - prob_ag[1, 1] # bad state to good state
+    prob_ag[1, 2] = 1 - prob_ag[1, 1] # bad state to good state
     prob_ag[2, 2] = Π[3, 3] + Π[3, 4]
-    prob_ag[1, 2] = 1 - prob_ag[2, 2] # good state to bad state
+    prob_ag[2, 1] = 1 - prob_ag[2, 2] # good state to bad state
     P = Π ./ kron(prob_ag, ones(nstates_ag, nstates_ag))
 
     # Generate aggregate shocks
-    mc = MarkovChain(prob_ag)
+    mc = MarkovChain(Π_aggr)
     ag_shock = simulate(mc, T, init = 1) # start from the bad state
 
     # generate idiosyncratic shocks for all agents in the first period
@@ -173,7 +173,7 @@ function iterate_policy(
     dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()
     alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     replacement = Array([mu, l_bar]) #replacement rate of wage
     n = ngridk * ngridkm * nstates_ag * nstates_id
 
@@ -256,7 +256,7 @@ function individual(k_prime, B)
     dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()
     alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     e = Array([er_b, er_g])
     u = 1 .- e
     replacement = Array([mu, l_bar]) #replacement rate of wage
@@ -338,7 +338,7 @@ function maketransition(a_prime, K, Z, distr, Π)
     # Generating grids
     alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk, ngridkm = gen_grid()
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
 
     # Setup the distribution
     dPrime = zeros(eltype(distr), size(distr))
@@ -385,7 +385,7 @@ function aggregate_st(
     )
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk,
         ngridkm = gen_grid()
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     
     # Initialize container
     km_ts = zeros(T)
@@ -417,7 +417,7 @@ function solve_ALM(plotting = false)
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk,
         ngridkm = gen_grid()
     alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob = shocks_parameters()
+    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
     
     # Initial guess for the policy function
