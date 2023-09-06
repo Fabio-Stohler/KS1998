@@ -451,10 +451,11 @@ function solve_ALM(plotting = false)
         run regression: log(km') = B[j,1]+B[j,2]log(km) for aggregate state
         """
         x = log.(km_ts[burn_in:end-1])[:]
-        X = Array([ones(length(x)) (ag_shock.-1)[burn_in:end-1] x (ag_shock .- 1.0)[burn_in:end-1].*x])
+        X = Array([ones(length(x)) (ag_shock.-1)[burn_in:end-1] x (ag_shock .- 1)[burn_in:end-1].*x])
         y = log.(km_ts[(burn_in+1):end])[:]
         ols = lm(X, y)
-        B_new = coef(ols) #inv(X'*X)*(X'*y) 
+        B_new = coef(ols)
+        # B_new = inv(X'*X)*(X'*y) 
         B_mat = reshape([B_new[1], B_new[1]+B_new[2], B_new[3], B_new[3]+B_new[4]],(2, 2))
         dif_B = norm(B_mat-B)
         
