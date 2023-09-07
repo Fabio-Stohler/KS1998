@@ -36,7 +36,7 @@ function gen_grid()
     T = 1000 + burn_in
     ngridk = 100
     x = range(0, 0.5, ngridk)
-    τ = 2
+    τ = 3
     y = (x ./ maximum(x)) .^ τ
     km_min = 30
     km_max = 50
