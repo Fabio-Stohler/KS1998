@@ -554,3 +554,5 @@ end
 B, km_ts, k_pred, distr, k_prime, c, id_shock, ag_shock = @time solve_ALM(true, true);
 
 # Compare coefficients between codes
+# Look at https://github.com/jbduarte/Computational-Methods-in-Macro/blob/master/5-%20Incomplete%20Markets%20%2B%20Aggregate%20Uncertainty%20Models/Krusell_Smith.ipynb
+# and look at https://github.com/QuantEcon/krusell_smith_code/blob/master/KSfunctions.ipynb
