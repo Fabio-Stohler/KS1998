@@ -545,6 +545,10 @@ function solve_ALM(plotting = false, plotting_check = false)
 
         println("The norm between the two series is: ", norm(km_ts .- k_alm))
     end
+    println("The coefficients are:")
+    println(B[1, :])
+    println(B[2, :])
+
     return B,
     km_ts,
     k_alm,
