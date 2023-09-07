@@ -339,7 +339,7 @@ end
 
 
 
-function maketransition(a_prime, K, Z, distr, Π)
+function maketransition(a_prime, K, Z, Z_p, distr, Π)
     # Generating grids
     alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk, ngridkm = gen_grid()
@@ -370,13 +370,18 @@ function maketransition(a_prime, K, Z, distr, Π)
                 DL_n = (dd .* (1.0 .- wR_m_n[aa, yy]))
                 DR_n = (dd .* wR_m_n[aa, yy])
                 pp = (Π[2*(Z-1)+yy, :])
+                PP = (Π_aggr[Z, Z_p])
                 for yy = 1:nstates_id
                     id_n = IDD_n .+ blockindex[yy]
-                    dPrime[id_n] += (pp[yy] + pp[yy+2]) .* DL_n
-                    dPrime[id_n+1] += (pp[yy] + pp[yy+2]) .* DR_n
+                    dPrime[id_n] += (pp[Int(yy + 2*(Z_p-1))] / PP) .* DL_n
+                    dPrime[id_n+1] += (pp[Int(yy + 2*(Z_p-1))] / PP) .* DR_n
                 end
             end
         end
+    end
+    if !(sum(dPrime) ≈ 1.0)
+        println("Transition matrix does not sum to 1.0")
+        println("Sum is: ", sum(dPrime))
     end
     return dPrime
 end
@@ -400,7 +405,7 @@ function aggregate_st(
     k_star = reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id))
 
     for t in range(1, length = T - 1)
-        dPrime = maketransition(k_star, km_ts[t], ag_shock[t], distr, prob)
+        dPrime = maketransition(k_star, km_ts[t], ag_shock[t], ag_shock[t+1], distr, prob)
         km_ts[t+1] = sum(sum(dPrime, dims = 2) .* k) # aggregate capital in t+1
         distr = dPrime
     end
@@ -516,10 +521,10 @@ function solve_ALM(plotting = false, plotting_check = false)
             k_alm = zeros(T)
             k_alm[1] = km_ts[1]
             for t in range(2, length = T - 1)
-                k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(km_ts[t-1]))
+                k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(k_alm[t-1]))
             end
-            plot(km_ts[end-200:end], label = "Model")
-            plot!(k_alm[end-200:end], label = "ALM")
+            plot(km_ts, label = "Model")
+            plot!(k_alm, label = "ALM")
             display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
         end
         B = B_mat .* update_B .+ B .* (1 .- update_B) # update the vector of ALM coefficients
@@ -530,12 +535,12 @@ function solve_ALM(plotting = false, plotting_check = false)
     k_alm = zeros(T)
     k_alm[1] = km_ts[1]
     for t in range(2, length = T - 1)
-        k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(km_ts[t-1]))
+        k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(k_alm[t-1]))
     end
     if plotting
         # Plotting the results
-        plot(km_ts, label = "Realized")
-        plot!(k_alm, label = "Forecasted")
+        plot(km_ts, label = "Model")
+        plot!(k_alm, label = "ALM")
         display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
 
         println("The norm between the two series is: ", norm(km_ts .- k_alm))
