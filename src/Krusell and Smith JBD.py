@@ -338,7 +338,7 @@ B, km_ts, k_cross, k_prime, c, id_shock, ag_shock = solve_ALM()
 end = time()
 print(end - start)
 
-
+print(B)
 
 
 
