@@ -121,7 +121,7 @@ function shocks()
     P = Π ./ kron(prob_ag, ones(nstates_ag, nstates_ag))
 
     # Generate aggregate shocks
-    mc = MarkovChain(Π_aggr)
+    mc = MarkovChain(Π_aggr')
     ag_shock = simulate(mc, T, init = 1) # start from the bad state
 
     # generate idiosyncratic shocks for all agents in the first period
