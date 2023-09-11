@@ -36,14 +36,8 @@ function solve_ALM(plotting = false, plotting_check = false)
     km_ts = zeros(npar.T)
     c = zeros(n)
 
-    # Finding a valid initial distribution
-    println("Finding an initial distribution")
-    distr = zeros((npar.ngridk, npar.nstates_id))
-    f(x) = F_distr(x, npar.k, mpar.k_ss)
-    sol = nlsolve(f, distr)
-    distr = sol.zero / sum(sol.zero)
-    println("Initial distribution found")
-    println(" ")
+    # Initial guess for the cross-sectional distribution
+    distr = npar.distr_init
 
     """
     Main loop

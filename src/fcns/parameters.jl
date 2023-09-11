@@ -12,6 +12,9 @@ end
 
 # Structure containing all grids
 @with_kw struct NumericalParameters
+    # Model parameters set in advance
+    mpar::ModelParameters = ModelParameters()
+    
     # Boundaries for asset grids
     k_min::Int = 0
     k_max::Int = 250
@@ -59,4 +62,7 @@ end
     update_k::Float64 = 0.77
     update_B::Float64 = 0.3
     iter_max::Int = 100
+
+    # Initial distribution
+    distr_init::Array{Float64} = initial_distr(ngridk, nstates_id, k, mpar.k_ss)
 end
