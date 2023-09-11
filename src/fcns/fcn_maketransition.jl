@@ -1,11 +1,11 @@
 function maketransition(
-        a_prime::Array, 
-        K::Float64, 
-        Z::Int, 
-        Z_p::Int, 
-        distr::Array, 
-        npar::NumericalParameters,
-    )
+    a_prime::Array,
+    K::Float64,
+    Z::Int,
+    Z_p::Int,
+    distr::Array,
+    npar::NumericalParameters,
+)
     # Setup the distribution
     dPrime = zeros(eltype(distr), size(distr))
 
@@ -34,8 +34,8 @@ function maketransition(
                 PP = (npar.Π_ag[Z, Z_p])
                 for yy = 1:npar.nstates_id
                     id_n = IDD_n .+ blockindex[yy]
-                    dPrime[id_n] += (pp[Int(yy + 2*(Z_p-1))] / PP) .* DL_n
-                    dPrime[id_n+1] += (pp[Int(yy + 2*(Z_p-1))] / PP) .* DR_n
+                    dPrime[id_n] += (pp[Int(yy + 2 * (Z_p - 1))] / PP) .* DL_n
+                    dPrime[id_n+1] += (pp[Int(yy + 2 * (Z_p - 1))] / PP) .* DR_n
                 end
             end
         end

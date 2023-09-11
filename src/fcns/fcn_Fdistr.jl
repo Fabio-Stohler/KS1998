@@ -1,9 +1,5 @@
 # Residual of a distribution
-function F_distr(
-        distr::Array, 
-        grid::Array, 
-        target_mean::Float64,
-    )
+function F_distr(distr::Array, grid::Array, target_mean::Float64)
 
     # Output for two residuals
     residuals = zeros(3)

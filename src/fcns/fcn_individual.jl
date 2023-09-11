@@ -1,23 +1,30 @@
 # Solve the individual problem
 function individual(
-        k_prime::Array, 
-        B::Array, 
-        mpar::ModelParameters, 
-        npar::NumericalParameters,
-    )
+    k_prime::Array,
+    B::Array,
+    mpar::ModelParameters,
+    npar::NumericalParameters,
+)
     # Extracting employment and unemployment rates
     e = Array([npar.er_b, npar.er_g])
     u = 1 .- e
 
     #Transition probabilities by current state (k,km, Z, eps) and future (Z', eps')
     n = npar.ngridk * npar.ngridkm * npar.nstates_ag * npar.nstates_id
-    P = zeros((npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag * npar.nstates_id))
+    P = zeros((
+        npar.ngridk,
+        npar.ngridkm,
+        npar.nstates_ag,
+        npar.nstates_id,
+        npar.nstates_ag * npar.nstates_id,
+    ))
     @inbounds @views begin
         for z in range(1, length = npar.nstates_ag * npar.nstates_id)
             for i in range(1, length = npar.nstates_ag)
                 for j in range(1, length = npar.nstates_id)
                     # Check this again!
-                    P[:, :, i, j, z] = npar.Π[2*(i-1)+j, z] * ones((npar.ngridk, npar.ngridkm))
+                    P[:, :, i, j, z] =
+                        npar.Π[2*(i-1)+j, z] * ones((npar.ngridk, npar.ngridkm))
                 end
             end
         end
@@ -29,7 +36,12 @@ function individual(
     ag = zeros(n)
     e_i = zeros(n)
     Cart_Indices = CartesianIndices(
-        Array(reshape(range(1, length = n), (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id))),
+        Array(
+            reshape(
+                range(1, length = n),
+                (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id),
+            ),
+        ),
     )
     for s_i in range(1, length = n)
         k_indices[s_i], km_indices[s_i], ag[s_i], e_i[s_i] = Tuple(Cart_Indices[s_i])
@@ -67,8 +79,10 @@ function individual(
     wage_prime = zeros((n, npar.nstates_ag))
     @inbounds @views begin
         for i in range(1, npar.nstates_ag)
-            irate_prime[:, i] = mpar.α .* npar.a[i] .* ((K_prime ./ (e[i] .* mpar.l_bar)) .^ (mpar.α .- 1))
-            wage_prime[:, i] = (1 .- mpar.α) .* npar.a[i] .* ((K_prime / (e[i] * mpar.l_bar)) .^ mpar.α)
+            irate_prime[:, i] =
+                mpar.α .* npar.a[i] .* ((K_prime ./ (e[i] .* mpar.l_bar)) .^ (mpar.α .- 1))
+            wage_prime[:, i] =
+                (1 .- mpar.α) .* npar.a[i] .* ((K_prime / (e[i] * mpar.l_bar)) .^ mpar.α)
         end
     end
     # Tax rate
@@ -82,5 +96,15 @@ function individual(
         end
     end
 
-    return iterate_policy(k_prime, K_prime, wealth, irate_prime, wage_prime, tax_prime, P, mpar, npar)
+    return iterate_policy(
+        k_prime,
+        K_prime,
+        wealth,
+        irate_prime,
+        wage_prime,
+        tax_prime,
+        P,
+        mpar,
+        npar,
+    )
 end

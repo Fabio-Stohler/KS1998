@@ -27,8 +27,10 @@ function iterate_policy(
         mu_prime = zeros((n, npar.nstates_ag, npar.nstates_id))
 
         #reshape k_prime for interpolation
-        k_prime_reshape = reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
-        K_prime_reshape = reshape(K_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
+        k_prime_reshape =
+            reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
+        K_prime_reshape =
+            reshape(K_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
         @inbounds @views begin
             for i in range(1, npar.nstates_ag)
                 for j in range(1, npar.nstates_id)
@@ -38,13 +40,13 @@ function iterate_policy(
                             Spline2D(npar.k, npar.km, k_prime_reshape[:, :, i, j]),
                             k_prime_reshape[:],
                             K_prime_reshape[:],
-                            ),
-                            n,
-                            )
+                        ),
+                        n,
+                    )
                     c_prime[:, i, j] = (
-                            irate[:, i] .* k_prime .+ replacement[j] .* (wage[:, i]) .+
-                            (1 .- mpar.δ) .* k_prime .- k2_prime[:, i, j] .- tax[:, i, j]
-                        )
+                        irate[:, i] .* k_prime .+ replacement[j] .* (wage[:, i]) .+
+                        (1 .- mpar.δ) .* k_prime .- k2_prime[:, i, j] .- tax[:, i, j]
+                    )
                 end
             end
         end
@@ -60,7 +62,8 @@ function iterate_policy(
             for i in range(1, length = npar.nstates_ag)
                 for j in range(1, length = npar.nstates_id)
                     expec_comp[:, i, j] =
-                        (mu_prime[:, i, j] .* (1 .- mpar.δ .+ irate[:, i])) .* P[:, 2*(i-1)+j]
+                        (mu_prime[:, i, j] .* (1 .- mpar.δ .+ irate[:, i])) .*
+                        P[:, 2*(i-1)+j]
                 end
             end
         end

@@ -2,7 +2,7 @@
     Function that generates the transition matrix for the aggregate shocks
     and the transition matrix conditional on the aggregate state
 """
-function shocks_parameters()   
+function shocks_parameters()
     # Part that has to be sourced out into a function
     # Assumptions on the risk behavior
     D_g = 8                 # Duration of a good aggregate state

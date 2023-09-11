@@ -14,7 +14,7 @@ end
 @with_kw struct NumericalParameters
     # Model parameters set in advance
     mpar::ModelParameters = ModelParameters()
-    
+
     # Boundaries for asset grids
     k_min::Int = 0
     k_max::Int = 250
@@ -26,34 +26,34 @@ end
     ngridkm::Int = 4
     nstates_id::Int = 2          # number of states for the idiosyncratic shock
     nstates_ag::Int = 2          # number of states for the aggregate shock
-    
+
     # Parameters for simulation
     burn_in::Int = 100
     T::Int = 1000 + burn_in
     δ_a::Float64 = 0.01
 
     # Actual grids
-    x::Array{Float64, 1} = range(0, 0.5, ngridk)
+    x::Array{Float64,1} = range(0, 0.5, ngridk)
     τ::Int = 3
-    y::Array{Float64, 1} = (x ./ maximum(x)) .^ τ
-    k::Array{Float64, 1} = k_min .+ (k_max .- k_min) .* y
-    km::Array{Float64, 1} = range(km_min, km_max, ngridkm)
-    ϵ::Array{Float64, 1} = range(0.0, nstates_id - 1.0)
-    a::Array{Float64, 1} = [1 - δ_a, 1 + δ_a]
+    y::Array{Float64,1} = (x ./ maximum(x)) .^ τ
+    k::Array{Float64,1} = k_min .+ (k_max .- k_min) .* y
+    km::Array{Float64,1} = range(km_min, km_max, ngridkm)
+    ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
+    a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
 
     # Employment / Unemployment rates
     ur_b::Float64 = shocks_parameters()[1]
     er_b::Float64 = shocks_parameters()[2]
     ur_g::Float64 = shocks_parameters()[3]
     er_g::Float64 = shocks_parameters()[4]
-    
+
     # Transition probabilities
     Π::Matrix{Float64} = shocks_parameters()[5]
     Π_ag::Matrix{Float64} = shocks_parameters()[6]
-    
+
     # Series of aggregate shocks
-    seed =  Random.seed!(123)       # Setting a random seed
-    ag_shock::Array{Int, 1} = simulate(MarkovChain(Π_ag), T, init = 1) # start from the bad state
+    seed = Random.seed!(123)       # Setting a random seed
+    ag_shock::Array{Int,1} = simulate(MarkovChain(Π_ag), T, init = 1) # start from the bad state
 
     # Convergence Parameters
     dif_B::Float64 = 10^10 # difference between coefficients B of ALM on succ. iter.

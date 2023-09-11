@@ -9,10 +9,7 @@ using LinearAlgebra, Statistics
 using NLsolve, FieldMetadata
 using Parameters
 
-export ModelParameters, 
-    NumericalParameters,
-    solve_ALM, 
-    aggregate_st
+export ModelParameters, NumericalParameters, solve_ALM, aggregate_st
 
 # Including all necessary functions
 include("./fcns/include_fcns.jl")
@@ -64,7 +61,7 @@ function solve_ALM(plotting = false, plotting_check = false)
         x = log.(km_ts[npar.burn_in:end-1])[:]
         X = Array(
             [ones(length(x)) (npar.ag_shock.-1)[npar.burn_in:end-1] x (npar.ag_shock.-1)[npar.burn_in:end-1] .*
-                                                            x],
+                                                                      x],
         )
         y = log.(km_ts[(npar.burn_in+1):end])[:]
         ols = lm(X, y)
@@ -103,7 +100,9 @@ function solve_ALM(plotting = false, plotting_check = false)
             k_alm = zeros(npar.T)
             k_alm[1] = km_ts[1]
             for t in range(2, length = npar.T - 1)
-                k_alm[t] = exp(B[npar.ag_shock[t-1], 1] .+ B[npar.ag_shock[t-1], 2] * log(k_alm[t-1]))
+                k_alm[t] = exp(
+                    B[npar.ag_shock[t-1], 1] .+ B[npar.ag_shock[t-1], 2] * log(k_alm[t-1]),
+                )
             end
             plot(km_ts, label = "Model")
             plot!(k_alm, label = "ALM")
@@ -117,7 +116,8 @@ function solve_ALM(plotting = false, plotting_check = false)
     k_alm = zeros(npar.T)
     k_alm[1] = km_ts[1]
     for t in range(2, length = npar.T - 1)
-        k_alm[t] = exp(B[npar.ag_shock[t-1], 1] .+ B[npar.ag_shock[t-1], 2] * log(k_alm[t-1]))
+        k_alm[t] =
+            exp(B[npar.ag_shock[t-1], 1] .+ B[npar.ag_shock[t-1], 2] * log(k_alm[t-1]))
     end
     if plotting
         # Plotting the results
