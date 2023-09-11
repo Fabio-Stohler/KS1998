@@ -39,10 +39,13 @@ end
     # Number of respective gridspoints
     ngridk::Int = 100
     ngridkm::Int = 4
+    nstates_id::Int = 2          # number of states for the idiosyncratic shock
+    nstates_ag::Int = 2          # number of states for the aggregate shock
     
     # Parameters for simulation
     burn_in::Int = 100
     T::Int = 1000 + burn_in
+    δ_a::Float64 = 0.01
 
     # Actual grids
     x::Array{Float64, 1} = range(0, 0.5, ngridk)
@@ -50,17 +53,24 @@ end
     y::Array{Float64, 1} = (x ./ maximum(x)) .^ τ
     k::Array{Float64, 1} = k_min .+ (k_max .- k_min) .* y
     km::Array{Float64, 1} = range(km_min, km_max, ngridkm)
+    ϵ::Array{Float64, 1} = range(0.0, nstates_id - 1.0)
+    a::Array{Float64, 1} = [1 - δ_a, 1 + δ_a]
+
+    # Probability 
+    ur_b = shocks_parameters()[1]
+    er_b = shocks_parameters()[2]
+    ur_g = shocks_parameters()[3]
+    er_g = shocks_parameters()[4]
+    Π = shocks_parameters()[5]
+    Π_ag = shocks_parameters()[6]    
 end
 
 
-function shocks_parameters()
-    nstates_id = 2          # number of states for the idiosyncratic shock
-    nstates_ag = 2          # number of states for the aggregate shock
-    ϵ = range(0.0, nstates_id - 1.0)
-    δ_a = 0.01
-    a = [1 - δ_a, 1 + δ_a]
-
-    
+@doc"""
+    Function that generates the transition matrix for the aggregate shocks
+    and the transition matrix conditional on the aggregate state
+"""
+function shocks_parameters()   
     # Part that has to be sourced out into a function
     # Assumptions on the risk behavior
     D_g = 8                 # Duration of a good aggregate state
@@ -110,23 +120,23 @@ function shocks_parameters()
     Π[4, 3] = ur_g * π_gg / (1 - ur_g) * (1 - Π[3, 3] / π_gg)
     Π[4, 4] = π_gg - Π[4, 3] # Π_gg10 + Π_gg11 = Π_gg
 
-    return nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π, Π_ag
+    return ur_b, er_b, ur_g, er_g, Π, Π_ag
 end
 
 
 # Function to draw the aggregate shocks
 function shocks(npar)
-    nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π, Π_aggr = shocks_parameters()
+    ur_b, er_b, ur_g, er_g, Π, Π_aggr = shocks_parameters()
     ag_shock = zeros(npar.T, 1)
     Random.seed!(123)
 
     # Transition probabilities between aggregate states
-    prob_ag = zeros((nstates_ag, nstates_ag))
+    prob_ag = zeros((npar.nstates_ag, npar.nstates_ag))
     prob_ag[1, 1] = Π[1, 1] + Π[1, 2]
     prob_ag[1, 2] = 1 - prob_ag[1, 1] # bad state to good state
     prob_ag[2, 2] = Π[3, 3] + Π[3, 4]
     prob_ag[2, 1] = 1 - prob_ag[2, 2] # good state to bad state
-    P = Π ./ kron(prob_ag, ones(nstates_ag, nstates_ag))
+    P = Π ./ kron(prob_ag, ones(npar.nstates_ag, npar.nstates_ag))
 
     # Generate aggregate shocks
     mc = MarkovChain(Π_aggr)
@@ -136,13 +146,13 @@ end
 
 
 
-function convergence_parameters(nstates_ag = 2)
+function convergence_parameters(npar)
     dif_B = 10^10 # difference between coefficients B of ALM on succ. iter.
     ϵ_k = 1e-8
     ϵ_B = 1e-6
     update_k = 0.77
     update_B = 0.3
-    B = zeros(nstates_ag, nstates_ag)
+    B = zeros(npar.nstates_ag, npar.nstates_ag)
     B[:, 1] .= 0.0
     B[:, 2] .= 1.0
     return B, dif_B, ϵ_k, ϵ_B, update_k, update_B
@@ -163,10 +173,10 @@ function iterate_policy(
     npar::NumericalParameters,
 )
     # Extracting necessary stuff
-    dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
+    dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters(npar)[2:end]
+    ur_b, er_b, ur_g, er_g, prob, Π_aggr = shocks_parameters()
     replacement = Array([mpar.μ, mpar.l_bar]) #replacement rate of wage
-    n = npar.ngridk * npar.ngridkm * nstates_ag * nstates_id
+    n = npar.ngridk * npar.ngridkm * npar.nstates_ag * npar.nstates_id
 
     # Convergence parameters
     dif_k = 1
@@ -176,15 +186,15 @@ function iterate_policy(
         """
             interpolate policy function k'=k(k, km) in new points (k', km')
         """
-        k2_prime = zeros((n, nstates_ag, nstates_id))
-        c_prime = zeros((n, nstates_ag, nstates_id))
-        mu_prime = zeros((n, nstates_ag, nstates_id))
+        k2_prime = zeros((n, npar.nstates_ag, npar.nstates_id))
+        c_prime = zeros((n, npar.nstates_ag, npar.nstates_id))
+        mu_prime = zeros((n, npar.nstates_ag, npar.nstates_id))
 
         #reshape k_prime for interpolation
-        k_prime_reshape = reshape(k_prime, (npar.ngridk, npar.ngridkm, nstates_id, nstates_ag))
-        K_prime_reshape = reshape(K_prime, (npar.ngridk, npar.ngridkm, nstates_id, nstates_ag))
-        for i in range(1, nstates_ag)
-            for j in range(1, nstates_id)
+        k_prime_reshape = reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
+        K_prime_reshape = reshape(K_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
+        for i in range(1, npar.nstates_ag)
+            for j in range(1, npar.nstates_id)
                 # capital in aggregate state i, idiosyncratic state j as a function of current states
                 k2_prime[:, i, j] = reshape(
                     evaluate(
@@ -208,9 +218,9 @@ function iterate_policy(
 
         #Expectation term in Euler equation
         #Components in terms of all possible transitions
-        expec_comp = zeros((n, nstates_ag, nstates_id))
-        for i in range(1, length = nstates_ag)
-            for j in range(1, length = nstates_id)
+        expec_comp = zeros((n, npar.nstates_ag, npar.nstates_id))
+        for i in range(1, length = npar.nstates_ag)
+            for j in range(1, length = npar.nstates_id)
                 expec_comp[:, i, j] =
                     (mu_prime[:, i, j] .* (1 .- mpar.δ .+ irate[:, i])) .* P[:, 2*(i-1)+j]
             end
@@ -220,8 +230,8 @@ function iterate_policy(
         sum over various transitions (which have already been scaled by their probability)
         """
         expec = sum(
-            expec_comp[:, i, j] for i in range(1, length = nstates_ag) for
-            j in range(1, length = nstates_id)
+            expec_comp[:, i, j] for i in range(1, length = npar.nstates_ag) for
+            j in range(1, length = npar.nstates_id)
         )
 
         # current consumption from Euler equation if borrowing constraint is not binding
@@ -247,31 +257,31 @@ end
 
 # Solve the individual problem
 function individual(k_prime, B, mpar, npar)
-    dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
+    dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters(npar)[2:end]
+    ur_b, er_b, ur_g, er_g, prob, Π_aggr = shocks_parameters()
     e = Array([er_b, er_g])
     u = 1 .- e
     #Tax rate depending on aggregate and idiosyncratic states
 
     #Transition probabilities by current state (k,km, Z, eps) and future (Z', eps')
-    n = npar.ngridk * npar.ngridkm * nstates_ag * nstates_id
-    P = zeros((npar.ngridk, npar.ngridkm, nstates_ag, nstates_id, nstates_ag * nstates_id))
-    for z in range(1, length = nstates_ag * nstates_id)
-        for i in range(1, length = nstates_ag)
-            for j in range(1, length = nstates_id)
+    n = npar.ngridk * npar.ngridkm * npar.nstates_ag * npar.nstates_id
+    P = zeros((npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag * npar.nstates_id))
+    for z in range(1, length = npar.nstates_ag * npar.nstates_id)
+        for i in range(1, length = npar.nstates_ag)
+            for j in range(1, length = npar.nstates_id)
                 # Check this again!
                 P[:, :, i, j, z] = prob[2*(i-1)+j, z] * ones((npar.ngridk, npar.ngridkm))
             end
         end
     end
-    P = reshape(P, (n, nstates_ag * nstates_id))
+    P = reshape(P, (n, npar.nstates_ag * npar.nstates_id))
 
     k_indices = zeros(n)
     km_indices = zeros(n)
     ag = zeros(n)
     e_i = zeros(n)
     Cart_Indices = CartesianIndices(
-        Array(reshape(range(1, length = n), (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id))),
+        Array(reshape(range(1, length = n), (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id))),
     )
     for s_i in range(1, length = n)
         k_indices[s_i], km_indices[s_i], ag[s_i], e_i[s_i] = Tuple(Cart_Indices[s_i])
@@ -286,7 +296,7 @@ function individual(k_prime, B, mpar, npar)
     capital, individual capital
     """
 
-    Z = Array([a[Int(i)] for i in ag])
+    Z = Array([npar.a[Int(i)] for i in ag])
     L = Array([e[Int(i)] for i in ag])
     K = Array([npar.km[Int(i)] for i in km_indices])
     k_i = Array([npar.k[Int(i)] for i in k_indices])
@@ -305,17 +315,17 @@ function individual(k_prime, B, mpar, npar)
     K_prime = max.(K_prime, npar.km_min)
 
     # Future interst rate and wage conditional on state (bad or good state)
-    irate_prime = zeros((n, nstates_ag))
-    wage_prime = zeros((n, nstates_ag))
-    for i in range(1, nstates_ag)
-        irate_prime[:, i] = mpar.α .* a[i] .* ((K_prime ./ (e[i] .* mpar.l_bar)) .^ (mpar.α .- 1))
-        wage_prime[:, i] = (1 .- mpar.α) .* a[i] .* ((K_prime / (e[i] * mpar.l_bar)) .^ mpar.α)
+    irate_prime = zeros((n, npar.nstates_ag))
+    wage_prime = zeros((n, npar.nstates_ag))
+    for i in range(1, npar.nstates_ag)
+        irate_prime[:, i] = mpar.α .* npar.a[i] .* ((K_prime ./ (e[i] .* mpar.l_bar)) .^ (mpar.α .- 1))
+        wage_prime[:, i] = (1 .- mpar.α) .* npar.a[i] .* ((K_prime / (e[i] * mpar.l_bar)) .^ mpar.α)
     end
 
     # Tax rate
-    tax_prime = zeros((n, nstates_ag, nstates_id))
-    for i in range(1, nstates_ag)
-        for j in range(1, nstates_id)
+    tax_prime = zeros((n, npar.nstates_ag, npar.nstates_id))
+    for i in range(1, npar.nstates_ag)
+        for j in range(1, npar.nstates_id)
             tax_prime[:, i, j] =
                 (j .- 1.0) .* (mpar.μ .* wage_prime[:, i] .* u[i] ./ (1 .- u[i]))
         end
@@ -328,7 +338,7 @@ end
 
 function maketransition(a_prime, K, Z, Z_p, distr, Π, npar)
     # Generating grids
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
+    ur_b, er_b, ur_g, er_g, prob, Π_aggr = shocks_parameters()
 
     # Setup the distribution
     dPrime = zeros(eltype(distr), size(distr))
@@ -338,17 +348,17 @@ function maketransition(a_prime, K, Z, Z_p, distr, Π, npar)
     a_cur_z = a_prime[:, :, Z, :]
 
     # Interpolating over the capital grid onto the current realization of the capital stock
-    nodes = (npar.k, npar.km, epsilon)
+    nodes = (npar.k, npar.km, npar.ϵ)
     itp = interpolate(nodes, a_cur_z, Gridded(Linear()))
     extrp = extrapolate(itp, Flat())
-    a_prime_t = extrp(npar.k, [K], epsilon)
-    # a_prime_t = itp(k, K, epsilon)
+    a_prime_t = extrp(npar.k, [K], npar.ϵ)
+    # a_prime_t = itp(k, K, npar.ϵ)
 
     # Creating interpolation bounds
     idm_n, wR_m_n = MakeWeightsLight(a_prime_t, npar.k)
-    blockindex = (0:nstates_id-1) * npar.ngridk
+    blockindex = (0:npar.nstates_id-1) * npar.ngridk
     @views @inbounds begin
-        for yy = 1:nstates_id # all current income states
+        for yy = 1:npar.nstates_id # all current income states
             for aa = 1:npar.ngridk
                 dd = distr[aa, yy]
                 IDD_n = idm_n[aa, yy]
@@ -356,7 +366,7 @@ function maketransition(a_prime, K, Z, Z_p, distr, Π, npar)
                 DR_n = (dd .* wR_m_n[aa, yy])
                 pp = (Π[2*(Z-1)+yy, :])
                 PP = (Π_aggr[Z, Z_p])
-                for yy = 1:nstates_id
+                for yy = 1:npar.nstates_id
                     id_n = IDD_n .+ blockindex[yy]
                     dPrime[id_n] += (pp[Int(yy + 2*(Z_p-1))] / PP) .* DL_n
                     dPrime[id_n+1] += (pp[Int(yy + 2*(Z_p-1))] / PP) .* DR_n
@@ -380,14 +390,14 @@ function aggregate_st(
         npar,
     )
     # Generating shocks
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
+    ur_b, er_b, ur_g, er_g, prob, Π_aggr = shocks_parameters()
     
     # Initialize container
     km_ts = zeros(npar.T)
     km_ts[1] = sum(sum(distr, dims = 2) .* npar.k) # aggregate capital in t=1
 
     # Reshaping k_prime for the function
-    k_star = reshape(k_prime, (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id))
+    k_star = reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id))
 
     for t in range(1, length = npar.T - 1)
         dPrime = maketransition(k_star, km_ts[t], ag_shock[t], ag_shock[t+1], distr, prob, npar)
@@ -422,21 +432,21 @@ function solve_ALM(plotting = false, plotting_check = false)
     mpar = ModelParameters()
     npar = NumericalParameters()
     ag_shock = shocks(npar)
-    nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
-    B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
+    ur_b, er_b, ur_g, er_g, prob, Π_aggr = shocks_parameters()
+    B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters(npar)
 
     # Initial guess for the policy function
     k_prime = 0.9 * npar.k
-    n = npar.ngridk * npar.ngridkm * nstates_ag * nstates_id
+    n = npar.ngridk * npar.ngridkm * npar.nstates_ag * npar.nstates_id
     k_prime = reshape(k_prime, (length(k_prime), 1, 1, 1))
-    k_prime = ones((npar.ngridk, npar.ngridkm, nstates_ag, nstates_id)) .* k_prime
+    k_prime = ones((npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)) .* k_prime
     k_prime = reshape(k_prime, n)
     km_ts = zeros(npar.T)
     c = zeros(n)
 
     # Finding a valid initial distribution
     println("Finding an initial distribution")
-    distr = zeros((npar.ngridk, nstates_id))
+    distr = zeros((npar.ngridk, npar.nstates_id))
     f(x) = F_distr(x, npar.k, mpar.k_ss)
     sol = nlsolve(f, distr)
     distr = sol.zero / sum(sol.zero)
@@ -538,8 +548,8 @@ function solve_ALM(plotting = false, plotting_check = false)
     km_ts,
     k_alm,
     distr,
-    reshape(k_prime, (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id)),
-    reshape(c, (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id)),
+    reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
+    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     ag_shock
 end
 
