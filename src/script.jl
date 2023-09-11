@@ -1,5 +1,5 @@
 """
-Solution to Krusell and Smith (1998) from Fabio Stohler 
+Solution to Krusell and Smith (1998) from Fabio Stohler in Julia
 """
 
 # setting the correct working directory
@@ -10,22 +10,25 @@ using QuantEcon, Plots
 using Random, Distributions, Dierckx
 using Interpolations, GLM
 using LinearAlgebra, Statistics
-using NLsolve
+using NLsolve, FieldMetadata
+using Parameters
+@metadata label
 
 include("./fcns/LocateFcn.jl")
 include("./fcns/fcn_makeweights.jl")
 
 # function to set all parameters
-function gen_params()
-    β = 0.99        # discount factor
-    γ = 1.0         # utility function parameters
-    α = 0.36        # share of capital in production function
-    δ = 0.025       # depreciation rate
-    μ = 0.15        # unemployment benefits as a share of the wage
-    l_bar = 1 / 0.9 # time endowment; normalizes s.t. L_bad = 1
-    k_ss = (α * β / (1 - β * (1 - δ)))^(1 / (1 - α))
-    return α, β, γ, δ, μ, l_bar, k_ss
+@with_kw struct ModelParameters{T}
+    β::T = 0.99        # discount factor
+    γ::T = 1.0         # utility function parameters
+    α::T = 0.36        # share of capital in production function
+    δ::T = 0.025       # depreciation rate
+    μ::T = 0.15        # unemployment benefits as a share of the wage
+    l_bar::T = 1 / 0.9 # time endowment; normalizes s.t. L_bad = 1
+    k_ss::T = (α * β / (1 - β * (1 - δ)))^(1 / (1 - α))
 end
+
+mpar = ModelParameters()
 
 function gen_grid()
     N = 10000       # number of agents for stochastic simulation
@@ -170,13 +173,13 @@ function iterate_policy(
     wage::Array,
     tax::Array,
     P::Array,
+    mpar::ModelParameters,
 )
     # Extracting necessary stuff
     dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
-    N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()
-    alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
+    N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()    
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
-    replacement = Array([mu, l_bar]) #replacement rate of wage
+    replacement = Array([mpar.μ, mpar.l_bar]) #replacement rate of wage
     n = ngridk * ngridkm * nstates_ag * nstates_id
 
     # Convergence parameters
@@ -208,14 +211,14 @@ function iterate_policy(
 
                 c_prime[:, i, j] = (
                     irate[:, i] .* k_prime .+ replacement[j] .* (wage[:, i]) .+
-                    (1 .- delta) .* k_prime .- k2_prime[:, i, j] .- tax[:, i, j]
+                    (1 .- mpar.δ) .* k_prime .- k2_prime[:, i, j] .- tax[:, i, j]
                 )
             end
         end
 
         # replace negative consumption by very low positive number
         c_prime = max.(c_prime, 10^(-10))
-        mu_prime = c_prime .^ (-gamma)
+        mu_prime = c_prime .^ (-mpar.γ)
 
         #Expectation term in Euler equation
         #Components in terms of all possible transitions
@@ -223,7 +226,7 @@ function iterate_policy(
         for i in range(1, length = nstates_ag)
             for j in range(1, length = nstates_id)
                 expec_comp[:, i, j] =
-                    (mu_prime[:, i, j] .* (1 .- delta .+ irate[:, i])) .* P[:, 2*(i-1)+j]
+                    (mu_prime[:, i, j] .* (1 .- mpar.δ .+ irate[:, i])) .* P[:, 2*(i-1)+j]
             end
         end
         """
@@ -236,7 +239,7 @@ function iterate_policy(
         )
 
         # current consumption from Euler equation if borrowing constraint is not binding
-        cn = (beta .* expec) .^ (-1 / gamma)
+        cn = (mpar.β .* expec) .^ (-1 / mpar.γ)
         k_prime_n = wealth - cn
         k_prime_n = min.(k_prime_n, k_max)
         k_prime_n = max.(k_prime_n, k_min)
@@ -257,10 +260,9 @@ end
 
 
 # Solve the individual problem
-function individual(k_prime, B)
+function individual(k_prime, B, mpar)
     dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()
-    alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     e = Array([er_b, er_g])
     u = 1 .- e
@@ -303,11 +305,11 @@ function individual(k_prime, B)
     L = Array([e[Int(i)] for i in ag])
     K = Array([km[Int(i)] for i in km_indices])
     k_i = Array([k[Int(i)] for i in k_indices])
-    irate = alpha .* Z .* (K ./ (l_bar .* L)) .^ (alpha - 1)
-    wage = (1 - alpha) .* Z .* (K ./ (l_bar .* L)) .^ alpha
+    irate = mpar.α .* Z .* (K ./ (mpar.l_bar .* L)) .^ (mpar.α - 1)
+    wage = (1 - mpar.α) .* Z .* (K ./ (mpar.l_bar .* L)) .^ mpar.α
     wealth =
-        irate .* k_i .+ (wage .* e_i) .* l_bar .+ mu .* (wage .* (1 .- e_i)) .+
-        (1 .- delta) .* k_i .- mu .* (wage .* (1 .- L) ./ L) .* e_i
+        irate .* k_i .+ (wage .* e_i) .* mpar.l_bar .+ mpar.μ .* (wage .* (1 .- e_i)) .+
+        (1 .- mpar.δ) .* k_i .- mpar.μ .* (wage .* (1 .- L) ./ L) .* e_i
 
     # Transition of capital depends on aggregate state
     K_prime =
@@ -321,8 +323,8 @@ function individual(k_prime, B)
     irate_prime = zeros((n, nstates_ag))
     wage_prime = zeros((n, nstates_ag))
     for i in range(1, nstates_ag)
-        irate_prime[:, i] = alpha .* a[i] .* ((K_prime ./ (e[i] .* l_bar)) .^ (alpha .- 1))
-        wage_prime[:, i] = (1 .- alpha) .* a[i] .* ((K_prime / (e[i] * l_bar)) .^ alpha)
+        irate_prime[:, i] = mpar.α .* a[i] .* ((K_prime ./ (e[i] .* mpar.l_bar)) .^ (mpar.α .- 1))
+        wage_prime[:, i] = (1 .- mpar.α) .* a[i] .* ((K_prime / (e[i] * mpar.l_bar)) .^ mpar.α)
     end
 
     # Tax rate
@@ -330,18 +332,17 @@ function individual(k_prime, B)
     for i in range(1, nstates_ag)
         for j in range(1, nstates_id)
             tax_prime[:, i, j] =
-                (j .- 1.0) .* (mu .* wage_prime[:, i] .* u[i] ./ (1 .- u[i]))
+                (j .- 1.0) .* (mpar.μ .* wage_prime[:, i] .* u[i] ./ (1 .- u[i]))
         end
     end
 
-    return iterate_policy(k_prime, K_prime, wealth, irate_prime, wage_prime, tax_prime, P)
+    return iterate_policy(k_prime, K_prime, wealth, irate_prime, wage_prime, tax_prime, P, mpar)
 end
 
 
 
 function maketransition(a_prime, K, Z, Z_p, distr, Π)
     # Generating grids
-    alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max,  km, ngridk, ngridkm = gen_grid()
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
 
@@ -434,9 +435,9 @@ end
 # Solve it!
 function solve_ALM(plotting = false, plotting_check = false)
     # generate shocks, grid, parameters, and convergence parameters
+    mpar = ModelParameters()
     id_shock, ag_shock = shocks()
     N, J, k_min, k_max, T, burn_in, k, km_min, km_max, km, ngridk, ngridkm = gen_grid()
-    alpha, beta, gamma, delta, mu, l_bar, k_ss = gen_params()
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
 
@@ -452,7 +453,7 @@ function solve_ALM(plotting = false, plotting_check = false)
     # Finding a valid initial distribution
     println("Finding an initial distribution")
     distr = zeros((ngridk, nstates_id))
-    f(x) = F_distr(x, k, k_ss)
+    f(x) = F_distr(x, k, mpar.k_ss)
     sol = nlsolve(f, distr)
     distr = sol.zero / sum(sol.zero)
     println("Initial distribution found")
@@ -468,7 +469,7 @@ function solve_ALM(plotting = false, plotting_check = false)
     iteration = 1
     while dif_B > criter_B && iteration < 100
         # Solve for HH policy functions at a given law of motion
-        k_prime1, c = individual(k_prime, B)
+        k_prime1, c = individual(k_prime, B, mpar)
 
         # Save difference in policy functions
         dif_pol = norm(k_prime1 - k_prime)
