@@ -29,21 +29,29 @@ end
 
 
 # Structure containing all grids
-@with_kw struct Grids
+@with_kw struct NumericalParameters
+    # Boundaries for asset grids
     k_min::Int = 0
     k_max::Int = 250
+    km_min::Int = 30
+    km_max::Int = 50
+
+    # Number of respective gridspoints
+    ngridk::Int = 100
+    ngridkm::Int = 4
+    
+    # Parameters for simulation
     burn_in::Int = 100
     T::Int = 1000 + burn_in
-    ngridk::Int = 100
+
+    # Actual grids
     x::Array{Float64, 1} = range(0, 0.5, ngridk)
     τ::Int = 3
     y::Array{Float64, 1} = (x ./ maximum(x)) .^ τ
-    km_min::Int = 30
-    km_max::Int = 50
     k::Array{Float64, 1} = k_min .+ (k_max .- k_min) .* y
-    ngridkm::Int = 4
     km::Array{Float64, 1} = range(km_min, km_max, ngridkm)
 end
+
 
 function shocks_parameters()
     nstates_id = 2          # number of states for the idiosyncratic shock
@@ -52,6 +60,8 @@ function shocks_parameters()
     δ_a = 0.01
     a = [1 - δ_a, 1 + δ_a]
 
+    
+    # Part that has to be sourced out into a function
     # Assumptions on the risk behavior
     D_g = 8                 # Duration of a good aggregate state
     D_b = 8                 # Duration of a bad aggregate state
@@ -105,9 +115,9 @@ end
 
 
 # Function to draw the aggregate shocks
-function shocks(grds)
+function shocks(npar)
     nstates_id, nstates_ag, ϵ, ur_b, er_b, ur_g, er_g, a, Π, Π_aggr = shocks_parameters()
-    ag_shock = zeros(grds.T, 1)
+    ag_shock = zeros(npar.T, 1)
     Random.seed!(123)
 
     # Transition probabilities between aggregate states
@@ -120,7 +130,7 @@ function shocks(grds)
 
     # Generate aggregate shocks
     mc = MarkovChain(Π_aggr)
-    ag_shock = simulate(mc, grds.T, init = 1) # start from the bad state
+    ag_shock = simulate(mc, npar.T, init = 1) # start from the bad state
     return ag_shock
 end
 
@@ -150,13 +160,13 @@ function iterate_policy(
     tax::Array,
     P::Array,
     mpar::ModelParameters,
-    grds::Grids,
+    npar::NumericalParameters,
 )
     # Extracting necessary stuff
     dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     replacement = Array([mpar.μ, mpar.l_bar]) #replacement rate of wage
-    n = grds.ngridk * grds.ngridkm * nstates_ag * nstates_id
+    n = npar.ngridk * npar.ngridkm * nstates_ag * nstates_id
 
     # Convergence parameters
     dif_k = 1
@@ -171,14 +181,14 @@ function iterate_policy(
         mu_prime = zeros((n, nstates_ag, nstates_id))
 
         #reshape k_prime for interpolation
-        k_prime_reshape = reshape(k_prime, (grds.ngridk, grds.ngridkm, nstates_id, nstates_ag))
-        K_prime_reshape = reshape(K_prime, (grds.ngridk, grds.ngridkm, nstates_id, nstates_ag))
+        k_prime_reshape = reshape(k_prime, (npar.ngridk, npar.ngridkm, nstates_id, nstates_ag))
+        K_prime_reshape = reshape(K_prime, (npar.ngridk, npar.ngridkm, nstates_id, nstates_ag))
         for i in range(1, nstates_ag)
             for j in range(1, nstates_id)
                 # capital in aggregate state i, idiosyncratic state j as a function of current states
                 k2_prime[:, i, j] = reshape(
                     evaluate(
-                        Spline2D(grds.k, grds.km, k_prime_reshape[:, :, i, j]),
+                        Spline2D(npar.k, npar.km, k_prime_reshape[:, :, i, j]),
                         k_prime_reshape[:],
                         K_prime_reshape[:],
                     ),
@@ -217,8 +227,8 @@ function iterate_policy(
         # current consumption from Euler equation if borrowing constraint is not binding
         cn = (mpar.β .* expec) .^ (-1 / mpar.γ)
         k_prime_n = wealth - cn
-        k_prime_n = min.(k_prime_n, grds.k_max)
-        k_prime_n = max.(k_prime_n, grds.k_min)
+        k_prime_n = min.(k_prime_n, npar.k_max)
+        k_prime_n = max.(k_prime_n, npar.k_min)
         """
         difference between new and previous capital functions
         """
@@ -236,7 +246,7 @@ end
 
 
 # Solve the individual problem
-function individual(k_prime, B, mpar, grds)
+function individual(k_prime, B, mpar, npar)
     dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()[2:end]
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     e = Array([er_b, er_g])
@@ -244,13 +254,13 @@ function individual(k_prime, B, mpar, grds)
     #Tax rate depending on aggregate and idiosyncratic states
 
     #Transition probabilities by current state (k,km, Z, eps) and future (Z', eps')
-    n = grds.ngridk * grds.ngridkm * nstates_ag * nstates_id
-    P = zeros((grds.ngridk, grds.ngridkm, nstates_ag, nstates_id, nstates_ag * nstates_id))
+    n = npar.ngridk * npar.ngridkm * nstates_ag * nstates_id
+    P = zeros((npar.ngridk, npar.ngridkm, nstates_ag, nstates_id, nstates_ag * nstates_id))
     for z in range(1, length = nstates_ag * nstates_id)
         for i in range(1, length = nstates_ag)
             for j in range(1, length = nstates_id)
                 # Check this again!
-                P[:, :, i, j, z] = prob[2*(i-1)+j, z] * ones((grds.ngridk, grds.ngridkm))
+                P[:, :, i, j, z] = prob[2*(i-1)+j, z] * ones((npar.ngridk, npar.ngridkm))
             end
         end
     end
@@ -261,7 +271,7 @@ function individual(k_prime, B, mpar, grds)
     ag = zeros(n)
     e_i = zeros(n)
     Cart_Indices = CartesianIndices(
-        Array(reshape(range(1, length = n), (grds.ngridk, grds.ngridkm, nstates_ag, nstates_id))),
+        Array(reshape(range(1, length = n), (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id))),
     )
     for s_i in range(1, length = n)
         k_indices[s_i], km_indices[s_i], ag[s_i], e_i[s_i] = Tuple(Cart_Indices[s_i])
@@ -278,8 +288,8 @@ function individual(k_prime, B, mpar, grds)
 
     Z = Array([a[Int(i)] for i in ag])
     L = Array([e[Int(i)] for i in ag])
-    K = Array([grds.km[Int(i)] for i in km_indices])
-    k_i = Array([grds.k[Int(i)] for i in k_indices])
+    K = Array([npar.km[Int(i)] for i in km_indices])
+    k_i = Array([npar.k[Int(i)] for i in k_indices])
     irate = mpar.α .* Z .* (K ./ (mpar.l_bar .* L)) .^ (mpar.α - 1)
     wage = (1 - mpar.α) .* Z .* (K ./ (mpar.l_bar .* L)) .^ mpar.α
     wealth =
@@ -291,8 +301,8 @@ function individual(k_prime, B, mpar, grds)
         Array([exp(B[ag[i], 1] .+ B[ag[i], 2] * log(K[i])) for i in range(1, length = n)])
 
     # restrict km_prime to fall into bounds
-    K_prime = min.(K_prime, grds.km_max)
-    K_prime = max.(K_prime, grds.km_min)
+    K_prime = min.(K_prime, npar.km_max)
+    K_prime = max.(K_prime, npar.km_min)
 
     # Future interst rate and wage conditional on state (bad or good state)
     irate_prime = zeros((n, nstates_ag))
@@ -311,12 +321,12 @@ function individual(k_prime, B, mpar, grds)
         end
     end
 
-    return iterate_policy(k_prime, K_prime, wealth, irate_prime, wage_prime, tax_prime, P, mpar, grds)
+    return iterate_policy(k_prime, K_prime, wealth, irate_prime, wage_prime, tax_prime, P, mpar, npar)
 end
 
 
 
-function maketransition(a_prime, K, Z, Z_p, distr, Π, grds)
+function maketransition(a_prime, K, Z, Z_p, distr, Π, npar)
     # Generating grids
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
 
@@ -328,18 +338,18 @@ function maketransition(a_prime, K, Z, Z_p, distr, Π, grds)
     a_cur_z = a_prime[:, :, Z, :]
 
     # Interpolating over the capital grid onto the current realization of the capital stock
-    nodes = (grds.k, grds.km, epsilon)
+    nodes = (npar.k, npar.km, epsilon)
     itp = interpolate(nodes, a_cur_z, Gridded(Linear()))
     extrp = extrapolate(itp, Flat())
-    a_prime_t = extrp(grds.k, [K], epsilon)
+    a_prime_t = extrp(npar.k, [K], epsilon)
     # a_prime_t = itp(k, K, epsilon)
 
     # Creating interpolation bounds
-    idm_n, wR_m_n = MakeWeightsLight(a_prime_t, grds.k)
-    blockindex = (0:nstates_id-1) * grds.ngridk
+    idm_n, wR_m_n = MakeWeightsLight(a_prime_t, npar.k)
+    blockindex = (0:nstates_id-1) * npar.ngridk
     @views @inbounds begin
         for yy = 1:nstates_id # all current income states
-            for aa = 1:grds.ngridk
+            for aa = 1:npar.ngridk
                 dd = distr[aa, yy]
                 IDD_n = idm_n[aa, yy]
                 DL_n = (dd .* (1.0 .- wR_m_n[aa, yy]))
@@ -367,21 +377,21 @@ function aggregate_st(
         distr, 
         k_prime, 
         ag_shock,
-        grds,
+        npar,
     )
     # Generating shocks
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     
     # Initialize container
-    km_ts = zeros(grds.T)
-    km_ts[1] = sum(sum(distr, dims = 2) .* grds.k) # aggregate capital in t=1
+    km_ts = zeros(npar.T)
+    km_ts[1] = sum(sum(distr, dims = 2) .* npar.k) # aggregate capital in t=1
 
     # Reshaping k_prime for the function
-    k_star = reshape(k_prime, (grds.ngridk, grds.ngridkm, nstates_ag, nstates_id))
+    k_star = reshape(k_prime, (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id))
 
-    for t in range(1, length = grds.T - 1)
-        dPrime = maketransition(k_star, km_ts[t], ag_shock[t], ag_shock[t+1], distr, prob, grds)
-        km_ts[t+1] = sum(sum(dPrime, dims = 2) .* grds.k) # aggregate capital in t+1
+    for t in range(1, length = npar.T - 1)
+        dPrime = maketransition(k_star, km_ts[t], ag_shock[t], ag_shock[t+1], distr, prob, npar)
+        km_ts[t+1] = sum(sum(dPrime, dims = 2) .* npar.k) # aggregate capital in t+1
         distr = dPrime
     end
     return km_ts, distr
@@ -410,24 +420,24 @@ end
 function solve_ALM(plotting = false, plotting_check = false)
     # generate shocks, grid, parameters, and convergence parameters
     mpar = ModelParameters()
-    grds = Grids()
-    ag_shock = shocks(grds)
+    npar = NumericalParameters()
+    ag_shock = shocks(npar)
     nstates_id, nstates_ag, epsilon, ur_b, er_b, ur_g, er_g, a, prob, Π_aggr = shocks_parameters()
     B, dif_B, criter_k, criter_B, update_k, update_B = convergence_parameters()
 
     # Initial guess for the policy function
-    k_prime = 0.9 * grds.k
-    n = grds.ngridk * grds.ngridkm * nstates_ag * nstates_id
+    k_prime = 0.9 * npar.k
+    n = npar.ngridk * npar.ngridkm * nstates_ag * nstates_id
     k_prime = reshape(k_prime, (length(k_prime), 1, 1, 1))
-    k_prime = ones((grds.ngridk, grds.ngridkm, nstates_ag, nstates_id)) .* k_prime
+    k_prime = ones((npar.ngridk, npar.ngridkm, nstates_ag, nstates_id)) .* k_prime
     k_prime = reshape(k_prime, n)
-    km_ts = zeros(grds.T)
+    km_ts = zeros(npar.T)
     c = zeros(n)
 
     # Finding a valid initial distribution
     println("Finding an initial distribution")
-    distr = zeros((grds.ngridk, nstates_id))
-    f(x) = F_distr(x, grds.k, mpar.k_ss)
+    distr = zeros((npar.ngridk, nstates_id))
+    f(x) = F_distr(x, npar.k, mpar.k_ss)
     sol = nlsolve(f, distr)
     distr = sol.zero / sum(sol.zero)
     println("Initial distribution found")
@@ -443,23 +453,23 @@ function solve_ALM(plotting = false, plotting_check = false)
     iteration = 1
     while dif_B > criter_B && iteration < 100
         # Solve for HH policy functions at a given law of motion
-        k_prime1, c = individual(k_prime, B, mpar, grds)
+        k_prime1, c = individual(k_prime, B, mpar, npar)
 
         # Save difference in policy functions
         dif_pol = norm(k_prime1 - k_prime)
         k_prime = copy(k_prime1)
 
         # Generate time series and cross section of capital
-        km_ts, distr1 = aggregate_st(distr, k_prime, ag_shock, grds)
+        km_ts, distr1 = aggregate_st(distr, k_prime, ag_shock, npar)
         """
         run regression: log(km') = B[j,1]+B[j,2]log(km) for aggregate state
         """
-        x = log.(km_ts[grds.burn_in:end-1])[:]
+        x = log.(km_ts[npar.burn_in:end-1])[:]
         X = Array(
-            [ones(length(x)) (ag_shock.-1)[grds.burn_in:end-1] x (ag_shock.-1)[grds.burn_in:end-1] .*
+            [ones(length(x)) (ag_shock.-1)[npar.burn_in:end-1] x (ag_shock.-1)[npar.burn_in:end-1] .*
                                                             x],
         )
-        y = log.(km_ts[(grds.burn_in+1):end])[:]
+        y = log.(km_ts[(npar.burn_in+1):end])[:]
         ols = lm(X, y)
         B_new = coef(ols)
         # B_new = inv(X'*X)*(X'*y) 
@@ -469,7 +479,7 @@ function solve_ALM(plotting = false, plotting_check = false)
 
         # if iteration % 100 == 0
         println("Iteration: ", iteration)
-        println("Average capital: ", round(mean(km_ts[grds.burn_in:end]), digits = 5))
+        println("Average capital: ", round(mean(km_ts[npar.burn_in:end]), digits = 5))
         println("Error: ", dif_B)
         println("Error in pol. fcn.: ", dif_pol)
         # println("Pure coefficients: ", B_new)
@@ -493,9 +503,9 @@ function solve_ALM(plotting = false, plotting_check = false)
         # Plotting the results
         if plotting_check
             # Generate time series of capital
-            k_alm = zeros(grds.T)
+            k_alm = zeros(npar.T)
             k_alm[1] = km_ts[1]
-            for t in range(2, length = grds.T - 1)
+            for t in range(2, length = npar.T - 1)
                 k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(k_alm[t-1]))
             end
             plot(km_ts, label = "Model")
@@ -507,9 +517,9 @@ function solve_ALM(plotting = false, plotting_check = false)
     end
 
     # Generate time series of capital
-    k_alm = zeros(grds.T)
+    k_alm = zeros(npar.T)
     k_alm[1] = km_ts[1]
-    for t in range(2, length = grds.T - 1)
+    for t in range(2, length = npar.T - 1)
         k_alm[t] = exp(B[ag_shock[t-1], 1] .+ B[ag_shock[t-1], 2] * log(k_alm[t-1]))
     end
     if plotting
@@ -528,8 +538,8 @@ function solve_ALM(plotting = false, plotting_check = false)
     km_ts,
     k_alm,
     distr,
-    reshape(k_prime, (grds.ngridk, grds.ngridkm, nstates_ag, nstates_id)),
-    reshape(c, (grds.ngridk, grds.ngridkm, nstates_ag, nstates_id)),
+    reshape(k_prime, (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id)),
+    reshape(c, (npar.ngridk, npar.ngridkm, nstates_ag, nstates_id)),
     ag_shock
 end
 
