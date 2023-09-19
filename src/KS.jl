@@ -125,7 +125,7 @@ function solve_ALM(plotting = false, plotting_check = false)
         plot!(k_alm, label = "ALM")
         display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
 
-        println("The norm between the two series is: ", norm(km_ts .- k_alm))
+        println("The norm between the two series is: ", norm(km_ts[npar.burn_in:end] .- k_alm[npar.burn_in:end]))
     end
     println("The coefficients are:")
     println(B[1, 1], " ", B[1, 2])
