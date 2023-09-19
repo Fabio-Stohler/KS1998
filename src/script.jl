@@ -1,5 +1,5 @@
 """
-Solution to Krusell and Smith (1998) from Fabio Stohler in Julia
+Solution to Krusell and Smith (1998) written by Fabio Stohler in Julia
 """
 
 # setting the correct working directory
