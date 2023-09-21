@@ -1,3 +1,20 @@
+@doc raw"""
+    individual(k_prime::Array, B::Array, mpar::ModelParameters, npar::NumericalParameters)
+
+Function that sets up the individual problem for it to be solved via iterate.
+
+Inputs:
+
+- k_prime::Array:               Initial guess for a policy function
+- B::Array:                     Perceived law of motion of the households
+- mpar::ModelParameters:        Economci parameters of the model
+- npar::NumericalParameters:    Numerical parameters of the model
+
+Outputs:
+
+- kprime::Array:                policy function for savings
+- c::Array:                     policy function for consumption
+"""
 # Solve the individual problem
 function individual(
     k_prime::Array,
@@ -9,7 +26,7 @@ function individual(
     e = Array([npar.er_b, npar.er_g])
     u = 1 .- e
 
-    #Transition probabilities by current state (k,km, Z, eps) and future (Z', eps')
+    #Transition probabilities by current state (k, km, Z, eps) and future (Z', eps')
     n = npar.ngridk * npar.ngridkm * npar.nstates_ag * npar.nstates_id
     P = zeros((
         npar.ngridk,
