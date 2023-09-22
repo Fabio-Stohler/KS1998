@@ -1,3 +1,29 @@
+@doc raw"""
+    update_EVk(rU::Array, B::Array, mpar::ModelParameters, npar::NumericalParameters)
+
+Returns the expected marginal value of capital tomorrow.
+
+# Example
+```julia-repl
+julia> using KS
+julia> mpar = ModelParameters()
+julia> npar = NumericalParameters()
+julia> B = zeros(npar.nstates_ag, npar.nstates_ag)
+julia> B[:, 1] = 0.1
+julia> B[:, 2] = 0.9
+julia> rU = mutil(range(0.1, 5.0, 100))
+julia> update_EVk(rU, B, mpar, npar)
+```
+
+# Inputs
+- `rU::Array`: marginal utility of consumption tomorrow
+- `B::Array`: coefficients of the aggregate law of motion
+- `mpar::ModelParameters`: model parameters
+- `npar::NumericalParameters`: numerical parameters
+
+# Returns
+- `EVk::Array`: expected marginal value of capital tomorrow
+"""
 function update_EVk(rU::Array, B::Array, mpar::ModelParameters, npar::NumericalParameters)
     EVk = similar(rU)
     Vk = zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
@@ -5,6 +31,34 @@ function update_EVk(rU::Array, B::Array, mpar::ModelParameters, npar::NumericalP
     return EVk
 end
 
+
+@doc raw"""
+    update_EVk!(EVk::Array, Vk::Array, rmu::Array, B::Array, mpar::ModelParameters, npar::NumericalParameters)
+
+Returns the expected marginal value of capital tomorrow using inplace operations.
+
+# Example
+```julia-repl
+julia> using KS
+julia> mpar = ModelParameters()
+julia> npar = NumericalParameters()
+julia> B = zeros(npar.nstates_ag, npar.nstates_ag)
+julia> B[:, 1] = 0.1
+julia> B[:, 2] = 0.9
+julia> rU = mutil(range(0.1, 5.0, 100))
+julia> EVk = similar(rU)
+julia> Vk = zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
+julia> update_EVk!(EVk, Vk, rU, B, mpar, npar)
+```
+
+# Inputs
+- `EVk::Array`: expected marginal value of capital tomorrow
+- `Vk::Array`: marginal value of capital tomorrow
+- `rmu::Array`: marginal utility of consumption tomorrow
+- `B::Array`: coefficients of the aggregate law of motion
+- `mpar::ModelParameters`: model parameters
+- `npar::NumericalParameters`: numerical parameters
+"""
 function update_EVk!(
     EVk::Array,
     Vk::Array,

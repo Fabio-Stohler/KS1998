@@ -1,6 +1,15 @@
 @doc raw"""
-    Function that generates the transition matrix for the aggregate shocks
-    and the transition matrix conditional on the aggregate state
+    shocks_parameters()
+
+Function that generates the transition matrix for the aggregate shocks and the transition matrix conditional on the aggregate state
+
+# Returns
+- `ur_b::Float64`: unemployment rate in a bad aggregate state
+- `er_b::Float64`: employment rate in a bad aggregate state
+- `ur_g::Float64`: unemployment rate in a good aggregate state
+- `er_g::Float64`: employment rate in a good aggregate state
+- `Π::Array`: transition matrix conditional on the aggregate state
+- `Π_ag::Array`: transition matrix for the aggregate state
 """
 function shocks_parameters()
     # Part that has to be sourced out into a function
