@@ -84,25 +84,10 @@ function update_EVk!(
                     # Interpolate on tomorrows capital stock 
                     Vk[kk, :, zz, yy, ZZ] =
                         mylinearinterpolate(km, rmu[kk, :, zz, yy], km_prime[ZZ, :])
-                    # mylinearinterpolate!(
-                    # Vk[kk, :, zz, yy, ZZ],
-                    # km, 
-                    # rmu[kk, :, zz, yy], 
-                    # km_prime[ZZ,:]
-                    # )
-                    # Cubic Spline interpolation
-                    #KS.evaluate(
-                    #    KS.Spline1D(
-                    #        km, 
-                    #        rU[kk, :, zz, yy],
-                    #        bc = "extrapolate"), 
-                    #    exp.(B[ZZ,1] .+ B[ZZ, 2] .* log.(km))
-                    #)
                 end
             end
         end
     end
-
 
     # Taking expectations over the marginal value
     for kk = 1:npar.ngridk # Current individal capital 
