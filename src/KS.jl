@@ -25,13 +25,22 @@ function solve_ALM(plotting = false, plotting_check = false)
     B[:, 1] .= 0.0
     B[:, 2] .= 1.0
 
+    # Inputs to solve_HH
+    L = repeat(reshape([npar.er_b, npar.er_g], (1, 1, npar.nstates_ag, 1)), outer = [npar.ngridk, npar.ngridkm, 1, npar.nstates_id]) # Mesh over employment in states
+    r_t = 1.0 .+ KS.interest(npar.mesh_km, npar.mesh_a, L .* mpar.l_bar, mpar)
+    w_t = KS.wage(npar.mesh_km, npar.mesh_a, L .* mpar.l_bar, mpar)
+    
+    # Defining income
+    inc::Array = [
+        w_t .* npar.mesh_ϵ .* mpar.l_bar .+ mpar.μ .* (w_t .* (1 .- npar.mesh_ϵ))  .- mpar.μ .* (w_t .* (1 .- L) ./ L) .* npar.mesh_ϵ,
+        r_t .* npar.mesh_k
+    ]
+    
     # Initial guess for the policy function
-    n = npar.ngridk * npar.ngridkm * npar.nstates_ag * npar.nstates_id
-    k_prime = reshape(0.9 * npar.k, (length(npar.k), 1, 1, 1))
-    k_prime = ones((npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)) .* k_prime
-    k_prime = reshape(k_prime, n)
     km_ts = zeros(npar.T)
-    c = zeros(n)
+    c = similar(r_t)
+    k0 = similar(r_t)
+    k1 = similar(r_t)
 
     # Initial guess for the cross-sectional distribution
     distr = npar.distr_init
@@ -47,14 +56,14 @@ function solve_ALM(plotting = false, plotting_check = false)
     dif_B = 10^10
     while dif_B > npar.ϵ_B && iteration < npar.iter_max
         # Solve for HH policy functions at a given law of motion
-        k_prime1, c = individual(k_prime, B, mpar, npar)
+        c, k1 = solve_HH(B, inc, r_t, npar, mpar)
 
         # Save difference in policy functions
-        dif_pol = norm(k_prime1 - k_prime)
-        k_prime = copy(k_prime1)
+        dif_pol = norm(k1 - k0)
+        k0 = copy(k1)
 
         # Generate time series and cross section of capital
-        km_ts, distr1 = aggregate_st(distr, k_prime, npar.ag_shock, npar)
+        km_ts, distr1 = aggregate_st(distr, k1, npar.ag_shock, npar)
         """
         run regression: log(km') = B[j,1]+B[j,2]log(km) for aggregate state
         """
@@ -135,7 +144,7 @@ function solve_ALM(plotting = false, plotting_check = false)
     km_ts,
     k_alm,
     distr,
-    reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
+    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     npar.ag_shock
 end
