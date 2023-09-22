@@ -1,9 +1,8 @@
+# Loads all the necessary functions in the fcns folder
 include("../fcns/fcn_locate.jl")
 include("../fcns/fcn_makeweights.jl")
 include("../fcns/parameters.jl")
 include("../fcns/fcn_shocks.jl")
-include("../fcns/fcn_iterate.jl")
-include("../fcns/fcn_individual.jl")
 include("../fcns/fcn_maketransition.jl")
 include("../fcns/fcn_aggregate.jl")
 include("../fcns/fcn_Fdistr.jl")
