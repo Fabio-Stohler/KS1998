@@ -1,7 +1,7 @@
 # structure containing all parameters
 @with_kw struct ModelParameters{T}
     β::T = 0.99        # discount factor
-    γ::T = 1.0         # utility function parameters
+    σ::T = 1.0         # utility function parameters
     α::T = 0.36        # share of capital in production function
     δ::T = 0.025       # depreciation rate
     μ::T = 0.15        # unemployment benefits as a share of the wage
