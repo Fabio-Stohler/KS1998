@@ -33,10 +33,8 @@ end
     δ_a::Float64 = 0.01
 
     # Actual grids
-    x::Array{Float64,1} = range(0, 0.5, ngridk)
-    τ::Int = 3
-    y::Array{Float64,1} = (x ./ maximum(x)) .^ τ
-    k::Array{Float64,1} = k_min .+ (k_max .- k_min) .* y
+    k::Array{Float64,1} =
+        exp.(range(0, stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0 #k_min .+ (k_max .- k_min) .* y
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
     a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
