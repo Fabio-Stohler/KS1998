@@ -57,11 +57,12 @@ end
 
     # Convergence Parameters
     dif_B::Float64 = 10^10 # difference between coefficients B of ALM on succ. iter.
-    ϵ_k::Float64 = 1e-8
+    ϵ_k::Float64 = 1e-10
     ϵ_B::Float64 = 1e-6
     update_k::Float64 = 0.77
     update_B::Float64 = 0.3
     iter_max::Int = 100
+    iter_max_k::Int = 10000
 
     # Initial distribution
     distr_init::Array{Float64} = initial_distr(ngridk, nstates_id, k, mpar.k_ss)
