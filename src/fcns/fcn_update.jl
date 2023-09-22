@@ -25,8 +25,10 @@ julia> update_EVk(rU, B, mpar, npar)
 - `EVk::Array`: expected marginal value of capital tomorrow
 """
 function update_EVk(rU::Array, B::Array, mpar::ModelParameters, npar::NumericalParameters)
+    # Setup the necessary arrays
     EVk = similar(rU)
     Vk = zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
+    # Update the expected marginal value of capital tomorrow
     update_EVk!(EVk, Vk, rU, B, mpar, npar)
     return EVk
 end
