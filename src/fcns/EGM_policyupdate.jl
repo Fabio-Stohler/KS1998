@@ -109,12 +109,15 @@ function EGM_policyupdate!(
                     bcpol = k_star_temp[1, kk, zz, jj]
                     for mm = 1:n[1]
                         if npar.k[mm] .< bcpol
-                            c_star[mm, kk, zz, jj] = inc_lab[mm, kk, zz, jj] .+ inc_LA[mm, kk, zz, jj] .- npar.k[1]
+                            c_star[mm, kk, zz, jj] =
+                                inc_lab[mm, kk, zz, jj] .+ inc_LA[mm, kk, zz, jj] .-
+                                npar.k[1]
                             k_star[mm, kk, zz, jj] = npar.k[1]
                         end
-                        if npar.k_max  .< k_star[mm,kk,jj]
-                            k_star[mm,kk,jj] = npar.k_max
-                            c_star[mm,kk,jj] = inc_lab[mm,kk,jj] + inc_LA[mm,kk,jj] - npar.k_max
+                        if npar.k_max .< k_star[mm, kk, jj]
+                            k_star[mm, kk, jj] = npar.k_max
+                            c_star[mm, kk, jj] =
+                                inc_lab[mm, kk, jj] + inc_LA[mm, kk, jj] - npar.k_max
                         end
                     end
                 end

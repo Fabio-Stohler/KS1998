@@ -71,8 +71,7 @@ end
 # Incomes (K:capital, Z: TFP): Interest rate = MPK.-δ, Wage = MPL, profits = Y-wL-(r+\delta)*K
 interest(K, Z, N, mpar::ModelParameters) =
     Z .* mpar.α .* (K ./ N) .^ (mpar.α .- 1.0) .- mpar.δ
-wage(K, Z, N, mpar::ModelParameters) =
-    Z .* (1 - mpar.α) .* (K ./ N) .^ mpar.α
+wage(K, Z, N, mpar::ModelParameters) = Z .* (1 - mpar.α) .* (K ./ N) .^ mpar.α
 
 output(K::Number, Z::Number, N::Number, mpar::ModelParameters) =
     Z .* K .^ (mpar.α) .* N .^ (1 - mpar.α)

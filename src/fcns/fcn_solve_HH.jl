@@ -17,28 +17,29 @@ Outputs:
 """
 # Solve the individual problem
 function solve_HH(
-        B::Array{Float64,2}, 
-        inc::Vector{Array{Float64,4}},
-        r_t::Array{Float64,4},
-        npar::NumericalParameters,
-        mpar::ModelParameters,
-        verbose::Bool = false,
-    )
+    B::Array{Float64,2},
+    inc::Vector{Array{Float64,4}},
+    r_t::Array{Float64,4},
+    npar::NumericalParameters,
+    mpar::ModelParameters,
+    verbose::Bool = false,
+)
 
     # Guess the initial value for rmu
     rmu = r_t .* mutil(inc[1] .+ (r_t .- 1.0) .* inc[2], mpar)
 
     # containers for policies, marginal value functions etc.
-    k_star::Array{Float64, 4} = similar(rmu)
-    c_star::Array{Float64, 4} = similar(rmu)
-    EVk::Array{Float64, 4} = similar(rmu)
-    Vk::Array{Float64, 5} = zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
-    rmu_new::Array{Float64, 4} = similar(rmu)
-    irmu::Array{Float64, 4} = invmutil(rmu, mpar)
-    irmu_new::Array{Float64, 4} = similar(irmu)
-    EMU::Array{Float64, 4} = similar(EVk)
-    c_star_temp::Array{Float64, 4} = similar(EVk)
-    k_star_temp::Array{Float64, 4} = similar(EVk)
+    k_star::Array{Float64,4} = similar(rmu)
+    c_star::Array{Float64,4} = similar(rmu)
+    EVk::Array{Float64,4} = similar(rmu)
+    Vk::Array{Float64,5} =
+        zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
+    rmu_new::Array{Float64,4} = similar(rmu)
+    irmu::Array{Float64,4} = invmutil(rmu, mpar)
+    irmu_new::Array{Float64,4} = similar(irmu)
+    EMU::Array{Float64,4} = similar(EVk)
+    c_star_temp::Array{Float64,4} = similar(EVk)
+    k_star_temp::Array{Float64,4} = similar(EVk)
 
     #   initialize distance variables
     count::Int = 0

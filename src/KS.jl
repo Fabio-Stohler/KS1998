@@ -26,16 +26,20 @@ function solve_ALM(plotting = false, plotting_check = false)
     B[:, 2] .= 1.0
 
     # Inputs to solve_HH
-    L = repeat(reshape([npar.er_b, npar.er_g], (1, 1, npar.nstates_ag, 1)), outer = [npar.ngridk, npar.ngridkm, 1, npar.nstates_id]) # Mesh over employment in states
+    L = repeat(
+        reshape([npar.er_b, npar.er_g], (1, 1, npar.nstates_ag, 1)),
+        outer = [npar.ngridk, npar.ngridkm, 1, npar.nstates_id],
+    ) # Mesh over employment in states
     r_t = 1.0 .+ KS.interest(npar.mesh_km, npar.mesh_a, L .* mpar.l_bar, mpar)
     w_t = KS.wage(npar.mesh_km, npar.mesh_a, L .* mpar.l_bar, mpar)
-    
+
     # Defining income
     inc::Array = [
-        w_t .* npar.mesh_ϵ .* mpar.l_bar .+ mpar.μ .* (w_t .* (1 .- npar.mesh_ϵ))  .- mpar.μ .* (w_t .* (1 .- L) ./ L) .* npar.mesh_ϵ,
-        r_t .* npar.mesh_k
+        w_t .* npar.mesh_ϵ .* mpar.l_bar .+ mpar.μ .* (w_t .* (1 .- npar.mesh_ϵ)) .-
+        mpar.μ .* (w_t .* (1 .- L) ./ L) .* npar.mesh_ϵ,
+        r_t .* npar.mesh_k,
     ]
-    
+
     # Initial guess for the policy function
     km_ts = zeros(npar.T)
     c = similar(r_t)
@@ -134,7 +138,10 @@ function solve_ALM(plotting = false, plotting_check = false)
         plot!(k_alm, label = "ALM")
         display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
 
-        println("The norm between the two series is: ", norm(km_ts[npar.burn_in:end] .- k_alm[npar.burn_in:end]))
+        println(
+            "The norm between the two series is: ",
+            norm(km_ts[npar.burn_in:end] .- k_alm[npar.burn_in:end]),
+        )
     end
     println("The coefficients are:")
     println(B[1, 1], " ", B[1, 2])

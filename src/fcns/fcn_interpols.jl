@@ -190,7 +190,18 @@ function mylinearinterpolate_mult4(
     yeval2 = Array{eltype(ygrd2),1}(undef, length(xeval))
     yeval3 = Array{eltype(ygrd3),1}(undef, length(xeval))
     yeval4 = Array{eltype(ygrd4),1}(undef, length(xeval))
-    mylinearinterpolate_mult4!(yeval1, yeval2, yeval3, yeval4, xgrd, ygrd1, ygrd2, ygrd3, ygrd4, xeval)
+    mylinearinterpolate_mult4!(
+        yeval1,
+        yeval2,
+        yeval3,
+        yeval4,
+        xgrd,
+        ygrd1,
+        ygrd2,
+        ygrd3,
+        ygrd4,
+        xeval,
+    )
     return yeval1, yeval2, yeval3, yeval4
 end
 function mylinearinterpolate_mult4!(

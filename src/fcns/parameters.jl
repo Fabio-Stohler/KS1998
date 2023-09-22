@@ -42,10 +42,14 @@ end
     a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
 
     # Meshes for EGM
-    mesh_k::Array{Float64,4} = repeat(reshape(k, (ngridk, 1, 1, 1)), outer = [1, ngridkm, nstates_ag, nstates_id])
-    mesh_km::Array{Float64,4} = repeat(reshape(km, (1, ngridkm, 1, 1)), outer = [ ngridk, 1, nstates_ag, nstates_id])
-    mesh_a::Array{Float64,4} = repeat(reshape(a, (1, 1, nstates_ag, 1)), outer = [ngridk, ngridkm, 1, nstates_id])
-    mesh_ϵ::Array{Float64,4} = repeat(reshape(ϵ, (1, 1, 1, nstates_id)), outer = [ngridk, ngridkm, nstates_ag, 1])
+    mesh_k::Array{Float64,4} =
+        repeat(reshape(k, (ngridk, 1, 1, 1)), outer = [1, ngridkm, nstates_ag, nstates_id])
+    mesh_km::Array{Float64,4} =
+        repeat(reshape(km, (1, ngridkm, 1, 1)), outer = [ngridk, 1, nstates_ag, nstates_id])
+    mesh_a::Array{Float64,4} =
+        repeat(reshape(a, (1, 1, nstates_ag, 1)), outer = [ngridk, ngridkm, 1, nstates_id])
+    mesh_ϵ::Array{Float64,4} =
+        repeat(reshape(ϵ, (1, 1, 1, nstates_id)), outer = [ngridk, ngridkm, nstates_ag, 1])
 
     # Employment / Unemployment rates
     ur_b::Float64 = shocks_parameters()[1]

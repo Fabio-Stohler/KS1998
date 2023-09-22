@@ -2,7 +2,7 @@
 function F_distr(input::Array, grid::Array, target_mean::Float64)
     # Transforms the input into a probability distribution
     N = Normal(0.0, 1.0)
-    distr = pdf.(N, input) ./ sum(pdf.(N, input)) 
+    distr = pdf.(N, input) ./ sum(pdf.(N, input))
 
     # Output for two residuals
     residuals = zeros(2)
