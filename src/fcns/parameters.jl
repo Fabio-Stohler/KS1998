@@ -18,11 +18,14 @@ end
     # Boundaries for asset grids
     k_min::Int = 0
     k_max::Int = 250
+    b_min::Int = -1.0
+    b_max::Int = 10.0
     km_min::Int = 30
     km_max::Int = 50
 
     # Number of respective gridspoints
     ngridk::Int = 100
+    ngridb::Int = 100
     ngridkm::Int = 4
     nstates_id::Int = 2          # number of states for the idiosyncratic shock
     nstates_ag::Int = 2          # number of states for the aggregate shock
@@ -34,7 +37,8 @@ end
 
     # Actual grids
     k::Array{Float64,1} =
-        exp.(range(0, stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0 #k_min .+ (k_max .- k_min) .* y
+        exp.(range(0, stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
+    b::Array{Float64,1} = exp.(range(0, stop = log(b_max - b_min + 1.0), length = ngridb)) .+ b_min .- 1.0 
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
     a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
