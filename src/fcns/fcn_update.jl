@@ -24,7 +24,12 @@ julia> update_EVk(rU, B, mpar, npar)
 # Returns
 - `EVk::Array`: expected marginal value of capital tomorrow
 """
-function update_EVk(rU::Array, B::Array, mpar::ModelParameters, npar::NumericalParameters)
+function update_EVk(
+        rU::Array{Float64, 4}, 
+        B::Array{Float64, 2}, 
+        mpar::ModelParameters, 
+        npar::NumericalParameters
+    )
     # Setup the necessary arrays
     EVk = similar(rU)
     Vk = zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
@@ -62,10 +67,10 @@ julia> update_EVk!(EVk, Vk, rU, B, mpar, npar)
 - `npar::NumericalParameters`: numerical parameters
 """
 function update_EVk!(
-    EVk::Array,
-    Vk::Array,
-    rmu::Array,
-    B::Array,
+    EVk::Array{Float64, 4},
+    Vk::Array{Float64, 5},
+    rmu::Array{Float64, 4},
+    B::Array{Float64, 2},
     mpar::ModelParameters,
     npar::NumericalParameters,
 )
