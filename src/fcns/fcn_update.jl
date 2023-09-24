@@ -85,20 +85,19 @@ function update_EVk!(
     for yy = 1:npar.nstates_id # Tomorrows income grid
         for ZZ = 1:npar.nstates_ag # Todays productivity
             # Interpolate on tomorrows capital stock
-            Vk[:, :, :, yy, ZZ] =
+            Vk[:, :, :, yy, ZZ] .=
                 KS.mylinearinterpolate3(npar.k, km, npar.a, rmu[:, :, :, yy], npar.k, km_prime[ZZ, :], npar.a) # Considerably faster than looping over all states
         end
     end
 
     # Taking expectations over the marginal value
-    for kk = 1:npar.ngridk # Current individal capital 
-        for km = 1:npar.ngridkm # Current aggregate capital
-            for yy = 1:npar.nstates_id # Current income state
-                for zz = 1:npar.nstates_ag # Current aggregate productivity
-                    # For each (individual) state today there exist four states tomorrow
-                    EVk[kk, km, zz, yy] = dot(Vk[kk, km, :, :, zz]'[:], Π[(zz.-1)*2+yy, :])
-                end
-            end
+    for yy = 1:npar.nstates_id # Current income state
+        for zz = 1:npar.nstates_ag # Current aggregate productivity
+            # For each (individual) state today there exist four states tomorrow
+            EVk[:, :, zz, yy] = reshape(
+                permutedims(Vk[:, :, :, :, zz], (1, 2, 4, 3)), 
+                (npar.ngridk*npar.ngridkm, npar.nstates_ag * npar.nstates_id)) * 
+                Π[(zz.-1)*2+yy, :]
         end
     end
 end
