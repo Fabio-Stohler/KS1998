@@ -78,14 +78,10 @@ function update_EVk!(
     # Conditional on todays productivity grid ZZ, interpolate onto tomorrows capital grid
     # Dependence follows from the LOM which depends on ZZ
     for yy = 1:npar.nstates_id # Tomorrows income grid
-        for zz = 1:npar.nstates_ag # Tomorrows productivity
-            for kk = 1:npar.ngridk # Tomorrows capital grid 
-                for ZZ = 1:npar.nstates_ag # Todays productivity
-                    # Interpolate on tomorrows capital stock 
-                    Vk[kk, :, zz, yy, ZZ] =
-                        mylinearinterpolate(km, rmu[kk, :, zz, yy], km_prime[ZZ, :])
-                end
-            end
+        for ZZ = 1:npar.nstates_ag # Todays productivity
+            # Interpolate on tomorrows capital stock
+            Vk[:, :, :, yy, ZZ] =
+                KS.mylinearinterpolate3(npar.k, km, npar.a, rmu[:, :, :, yy], npar.k, km_prime[ZZ, :], npar.a) # Considerably faster than looping over all states
         end
     end
 
