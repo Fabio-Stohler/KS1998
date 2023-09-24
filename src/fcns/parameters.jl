@@ -6,6 +6,7 @@
     δ::T = 0.025       # depreciation rate
     μ::T = 0.15        # unemployment benefits as a share of the wage
     l_bar::T = 1 / 0.9 # time endowment; normalizes s.t. L_bad = 1
+    Rbar::T = 0.0      # interest rate gap from borrowing
     k_ss::T = (α * β / (1 - β * (1 - δ)))^(1 / (1 - α))
 end
 
