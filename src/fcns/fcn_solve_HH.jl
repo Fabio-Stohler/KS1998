@@ -112,18 +112,26 @@ function solve_HH(
     verbose::Bool = false,
     warnme::Bool = false,
 )
+    # Guess for the state price
+    Qminus::Array{Float64, 5} = zeros(npar.ngridb, npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)
+    for km in 1:npar.ngridkm
+        for z in 1:npar.nstates_ag
+            # We need to conditionalize onto the current state?
+            Qminus[:, :, km, z, :] .= A[z, 1] .+ A[z, 2] .* log.(npar.km[km])
+        end
+    end
 
     # Guess the initial value for rmu
-    mu::Array{Float64, 5} = KS.mutil(inc[1] .+ inc[2] .* (inc[2] .> 0) .+ 0.5 .* inc[3], mpar)
+    mu::Array{Float64, 5} = KS.mutil(inc[1] .+ inc[2] .* (1 ./ Qminus .- 1.0) .* (inc[2] .> 0.0) .+ (r .- 1.0) .* inc[3], mpar)
     rmu::Array{Float64, 5} = r .* mu
-    
+
     # containers for policies, marginal value functions etc.
     n = size(rmu)
     k_star::Array{Float64, 5} = similar(rmu)
     b_star::Array{Float64, 5} = similar(rmu)
     c_star::Array{Float64, 5} = similar(rmu)
     c_star_temp::Array{Float64, 5} = similar(rmu)
-    b_star_temp::Array{Float64, 5} = similar(rmu)
+    b_temp::Array{Float64, 5} = similar(rmu)
     c_star_single::Array{Float64, 5} = similar(rmu)
     b_star_single::Array{Float64, 5} = similar(rmu)
     EVk::Array{Float64, 5} = copy(rmu)
@@ -133,7 +141,7 @@ function solve_HH(
     rmu_new::Array{Float64, 5} = similar(rmu)
     mu_new::Array{Float64, 5} = similar(rmu)
     irmu::Array{Float64, 5} = KS.invmutil(rmu, mpar)
-    imu::Array{Float64, 5} = KS.invmutil(rmu, mpar)
+    imu::Array{Float64, 5} = KS.invmutil(mu, mpar)
     irmu_new::Array{Float64, 5} = similar(irmu)
     imu_new::Array{Float64, 5} = similar(irmu)
     EMU::Array{Float64, 5} = similar(EVk)
@@ -142,16 +150,7 @@ function solve_HH(
     # Resource grid for EGM
     Resource_grid::Array{Float64, 4} = reshape(inc[2] .+ inc[3], (n[1] .* n[2], n[3], n[4], n[5]))
 
-    # Guess for the state price
-    Qminus::Array{Float64, 5} = zeros(npar.ngridb, npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)
-    for km in 1:npar.ngridkm
-        for z in 1:npar.nstates_ag
-            # We need to conditionalize onto the current state?
-            Qminus[:, :, km, :, :] .= A[z, 1] .+ A[z, 2] .* log.(npar.km[km])
-        end
-    end
-
-    #   initialize distance variables
+    # initialize distance variables
     count::Int = 0
     dist::Float64 = 9999.0
 
@@ -168,7 +167,7 @@ function solve_HH(
             E_return_diff,
             EMU,
             c_star_temp,
-            b_star_temp,
+            b_temp,
             c_star_single,
             b_star_single,
             Resource_grid,
@@ -187,8 +186,8 @@ function solve_HH(
         rmu_new = r .* mu_new
         invmutil!(irmu_new, rmu_new, mpar)
         invmutil!(imu_new, mu_new, mpar)
-        D1 = maximum(abs, rmu_new .- rmu)
-        D2 = maximum(abs, mu_new .- mu)
+        D1 = maximum(abs, irmu_new .- irmu)
+        D2 = maximum(abs, imu_new .- imu)
         dist = max(D1, D2)
             
         # update policy guess/marginal values of liquid/illiquid assets
@@ -196,11 +195,11 @@ function solve_HH(
         mu .= mu_new
         irmu .= irmu_new
         imu .= imu_new
-        if verbose && count % 1 == 0
+        if verbose && count % 100 == 0
             println("EGM Iterations: ", count)
             println("EGM Dist: ", dist)
             println(" ")
         end
     end
-    return c_star, b_star, k_star
+    return c_star, b_star, k_star, c_star_single, b_star_single
 end

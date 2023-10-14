@@ -20,7 +20,7 @@ end
     k_min::Int = 0
     k_max::Int = 250
     b_min::Int = -1.0
-    b_max::Int = 10.0
+    b_max::Int = 50.0
     km_min::Int = 30
     km_max::Int = 50
 
