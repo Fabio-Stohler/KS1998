@@ -82,17 +82,17 @@ function update_EVk!(
     km_prime = exp.(B[:, 1] .+ B[:, 2] * log.(km)')
     # Conditional on todays productivity grid ZZ, interpolate onto tomorrows capital grid
     # Dependence follows from the LOM which depends on ZZ
-    for yy = 1:npar.nstates_id # Tomorrows income grid
-        for ZZ = 1:npar.nstates_ag # Todays productivity
+    for ZZ = 1:npar.nstates_ag # Todays productivity
+        for yy = 1:npar.nstates_id # Tomorrows income grid
             # Interpolate on tomorrows capital stock
             Vk[:, :, :, yy, ZZ] .=
-                KS.mylinearinterpolate3(npar.k, km, npar.a, rmu[:, :, :, yy], npar.k, km_prime[ZZ, :], npar.a) # Considerably faster than looping over all states
+                mylinearinterpolate3(npar.k, km, npar.a, rmu[:, :, :, yy], npar.k, km_prime[ZZ, :], npar.a) # Considerably faster than looping over all states
         end
     end
 
     # Taking expectations over the marginal value
-    for yy = 1:npar.nstates_id # Current income state
-        for zz = 1:npar.nstates_ag # Current aggregate productivity
+    for zz = 1:npar.nstates_ag # Current aggregate productivity
+        for yy = 1:npar.nstates_id # Current income state
             # For each (individual) state today there exist four states tomorrow
             EVk[:, :, zz, yy] = reshape(
                 permutedims(Vk[:, :, :, :, zz], (1, 2, 4, 3)), 
