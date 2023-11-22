@@ -139,11 +139,11 @@ function EGM_policyupdate!(
                             k_star[mm, kk, zz, jj] = npar.k[1]
                         end
                         # Cut the policy function at the point where the upper constraint binds
-                        if npar.k_max .< k_star[mm, kk, jj]
-                            k_star[mm, kk, jj] = npar.k_max
-                            c_star[mm, kk, jj] =
-                                inc_lab[mm, kk, jj] + inc_LA[mm, kk, jj] - npar.k_max
-                        end
+                        # if npar.k_max .< k_star[mm, kk, jj]
+                            # k_star[mm, kk, zz, jj] = npar.k_max
+                            # c_star[mm, kk, zz, jj] =
+                                # inc_lab[mm, kk, zz, jj] + inc_LA[mm, kk, zz, jj] - npar.k_max
+                        # end
                     end
                 end
             end
