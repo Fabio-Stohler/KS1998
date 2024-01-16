@@ -12,4 +12,11 @@ push!(LOAD_PATH, pwd())
 using KS, Revise
 
 # Solving for the aggregate law of motion
-B, km_ts, k_pred, distr, k_prime, c, ag_shock = @time solve_ALM();
+B, km_ts, k_pred, distr, k_prime, c, ag_shock = @time solve_ALM(true, true);
+
+# plotting the policy function
+npar = NumericalParameters();
+plotend = 35
+KS.plot(npar.k[1:plotend], c[1:plotend, 3, 2, 2], label = "Employed");
+KS.plot!(npar.k[1:plotend], c[1:plotend, 3, 1, 2], label = "Unemployed");
+display(KS.plot!(title = "Consumption Policy Function", xlabel = "Wealth", ylabel = "Consumption", legend = :topleft));
