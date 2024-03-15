@@ -31,4 +31,5 @@ display(KS.plot!(title = "Capital Policy Function", xlabel = "Wealth", ylabel = 
 km_ts_sss, distr_sss = KS.aggregate_st(distr, k_prime, ones.(Integer, npar.T + 1), npar);
 km_ts_new = [km_ts; km_ts_sss];
 KS.plot(km_ts_new, label = "Capital");
+KS.plot!(repeat([ModelParameters().k_ss], length(km_ts_new)), label = "Deterministic Steady State", linestyle = :dash, color = :black);
 display(KS.plot!(title = "Stochastic Steady State", xlabel = "Time", ylabel = "Capital"));
