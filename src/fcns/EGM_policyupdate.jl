@@ -118,25 +118,25 @@ function EGM_policyupdate!(
     # Policies on grid tuples (k, km, z, e) are now given. 
     # Need to interpolate to return to fixed grid.
     @inbounds @views begin
-        for jj = 1:n[4] # Loop over income states
-            for zz = 1:n[3] # Loop over productivity states
-                for kk = 1:n[2] # Loop over aggregate capital states
+        for kk = 1:n[2] # Loop over aggregate capital states
+            for jj = 1:n[3] # Loop over income states
+                for zz = 1:n[4] # Loop over productivity states
                     mylinearinterpolate_mult2!(
-                        c_star[:, kk, zz, jj],
-                        k_star[:, kk, zz, jj],
-                        k_star_temp[:, kk, zz, jj],
-                        c_star_temp[:, kk, zz, jj],
+                        c_star[:, kk, jj, zz],
+                        k_star[:, kk, jj, zz],
+                        k_star_temp[:, kk, jj, zz],
+                        c_star_temp[:, kk, jj, zz],
                         npar.k,
                         npar.k,
                     )
                     # Check for binding borrowing constraints, no extrapolation from grid
-                    bcpol = k_star_temp[1, kk, zz, jj]
+                    bcpol = k_star_temp[1, kk, jj, zz]
                     for mm = 1:n[1]
                         if npar.k[mm] .< bcpol
-                            c_star[mm, kk, zz, jj] =
-                                inc_lab[mm, kk, zz, jj] .+ inc_LA[mm, kk, zz, jj] .-
+                            c_star[mm, kk, jj, zz] =
+                                inc_lab[mm, kk, jj, zz] .+ inc_LA[mm, kk, jj, zz] .-
                                 npar.k[1]
-                            k_star[mm, kk, zz, jj] = npar.k[1]
+                            k_star[mm, kk, jj, zz] = npar.k[1]
                         end
                         # Cut the policy function at the point where the upper constraint binds
                         if npar.k_max .< k_star[mm, kk, jj, zz]

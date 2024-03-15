@@ -11,7 +11,7 @@ function maketransition(
 
     # What is the current policy function given the realization of the aggregate state?
     # a_prime = reshape(k_prime, (ngridk, ngridkm, nstates_ag, nstates_id))
-    a_cur_z = a_prime[:, :, Z, :]
+    a_cur_z = a_prime[:, :, :, Z]
 
     # Interpolating over the capital grid onto the current realization of the capital stock
     nodes = (npar.k, npar.km, npar.ϵ)
@@ -24,8 +24,8 @@ function maketransition(
     idm_n, wR_m_n = MakeWeightsLight(a_prime_t, npar.k)
     blockindex = (0:npar.nstates_id-1) * npar.ngridk
     @views @inbounds begin
-        for yy = 1:npar.nstates_id # all current income states
-            for aa = 1:npar.ngridk
+        for aa = 1:npar.ngridk # all current capital states
+            for yy = 1:npar.nstates_id # all current income states
                 dd = distr[aa, yy]
                 IDD_n = idm_n[aa, yy]
                 DL_n = (dd .* (1.0 .- wR_m_n[aa, yy]))
