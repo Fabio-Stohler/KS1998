@@ -14,13 +14,14 @@ using KS, Revise
 # Solving for the aggregate law of motion
 B, km_ts, k_pred, distr, k_prime, c, ag_shock = @time solve_ALM(true, true);
 
-# plotting the policy function
+# Figure 1: the aggregate law of motion
 npar = NumericalParameters();
 KS.plot(npar.km, exp.(B[1,1] .+ B[1,2].*log.(npar.km)), label = "Bad times");
 KS.plot!(npar.km, exp.(B[2,1] .+ B[2,2].*log.(npar.km)), label = "Good times");
 KS.plot!(npar.km, npar.km, label = "45 degree line", linestyle = :dash, color = :black);
 display(KS.plot!(title = "Aggregate Law of Motion", xlabel = "Capital today", ylabel = "Capital tomorrow", legend = :topleft));
 
+# Figure 2: the policy function
 plotend = 60
 KS.plot(npar.k[1:plotend], k_prime[1:plotend, 3, 2, 2], label = "Employed");
 KS.plot!(npar.k[1:plotend], k_prime[1:plotend, 3, 2, 1], label = "Unemployed");
