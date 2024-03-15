@@ -27,8 +27,8 @@ function solve_ALM(plotting = false, plotting_check = false)
 
     # Inputs to solve_HH
     L = repeat(
-        reshape([npar.er_b, npar.er_g], (1, 1, npar.nstates_ag, 1)),
-        outer = [npar.ngridk, npar.ngridkm, 1, npar.nstates_id],
+        reshape([npar.er_b, npar.er_g], (1, 1, 1, npar.nstates_ag)),
+        outer = [npar.ngridk, npar.ngridkm, npar.nstates_id, 1],
     ) # Mesh over employment in states
     r_t = 1.0 .+ KS.interest(npar.mesh_km, npar.mesh_a, L .* mpar.l_bar, mpar)
     w_t = KS.wage(npar.mesh_km, npar.mesh_a, L .* mpar.l_bar, mpar)

@@ -33,7 +33,7 @@ function solve_HH(
     c_star::Array{Float64,4} = similar(rmu)
     EVk::Array{Float64,4} = similar(rmu)
     Vk::Array{Float64,5} =
-        zeros(npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id, npar.nstates_ag)
+        zeros(npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag, npar.nstates_ag)
     rmu_new::Array{Float64,4} = similar(rmu)
     irmu::Array{Float64,4} = invmutil(rmu, mpar)
     irmu_new::Array{Float64,4} = similar(irmu)

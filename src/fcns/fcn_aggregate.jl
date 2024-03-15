@@ -10,7 +10,7 @@ function aggregate_st(
     km_ts[1] = sum(sum(distr, dims = 2) .* npar.k) # aggregate capital in t=1
 
     # Reshaping k_prime for the function
-    k_star = reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id))
+    k_star = reshape(k_prime, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag))
     @inbounds @views begin
         for t in range(1, length = npar.T - 1)
             dPrime =

@@ -24,7 +24,7 @@ display(KS.plot!(title = "Aggregate Law of Motion", xlabel = "Capital today", yl
 # Figure 2: the policy function
 plotend = 60
 KS.plot(npar.k[1:plotend], k_prime[1:plotend, 3, 2, 2], label = "Employed");
-KS.plot!(npar.k[1:plotend], k_prime[1:plotend, 3, 2, 1], label = "Unemployed");
+KS.plot!(npar.k[1:plotend], k_prime[1:plotend, 3, 1, 2], label = "Unemployed");
 KS.plot!(npar.k[1:plotend], npar.k[1:plotend], label = "45 degree line", linestyle = :dash, color = :black);
 display(KS.plot!(title = "Capital Policy Function", xlabel = "Wealth", ylabel = "Next periods capital", legend = :topleft));
 
