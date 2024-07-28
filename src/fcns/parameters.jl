@@ -66,7 +66,7 @@ end
 
     # Convergence Parameters
     ϵ_k::Float64 = 1e-10
-    ϵ_B::Float64 = 1e-6
+    ϵ_B::Float64 = 1e-8
     update_B::Float64 = 0.3
     iter_max::Int = 100
     iter_max_k::Int = 10000

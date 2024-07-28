@@ -79,6 +79,7 @@ function solve_HH(
             println(" ")
         end
     end
+    println("EGM Iterations: ", count)
     return c_star, k_star
 end
 
