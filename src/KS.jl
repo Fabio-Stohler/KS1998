@@ -117,8 +117,8 @@ function solve_ALM(plotting = false, plotting_check = false)
                     B[npar.ag_shock[t-1], 1] .+ B[npar.ag_shock[t-1], 2] * log(k_alm[t-1]),
                 )
             end
-            plot(km_ts, label = "Model")
-            plot!(k_alm, label = "ALM")
+            plot(km_ts[npar.burn_in:end-1], label = "Model")
+            plot!(k_alm[npar.burn_in:end-1], label = "ALM")
             display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
         end
         B = B_mat .* npar.update_B .+ B .* (1 .- npar.update_B) # update the vector of ALM coefficients
@@ -134,8 +134,8 @@ function solve_ALM(plotting = false, plotting_check = false)
     end
     if plotting
         # Plotting the results
-        plot(km_ts, label = "Model")
-        plot!(k_alm, label = "ALM")
+        plot(km_ts[npar.burn_in:end-1], label = "Model")
+        plot!(k_alm[npar.burn_in:end-1], label = "ALM")
         display(plot!(title = "Capital series", xlabel = "Time", ylabel = "Capital"))
 
         println(
