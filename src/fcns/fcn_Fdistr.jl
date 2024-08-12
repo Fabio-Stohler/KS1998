@@ -1,32 +1,27 @@
 # Residual of a distribution
 function F_distr(input::Array, grid::Array, target_mean::Float64)
-    # Transforms the input into a probability distribution
-    N = Normal(0.0, 1.0)
-    distr = pdf.(N, input) ./ sum(pdf.(N, input))
+    # Transform the input directly into a probability distribution
+    distr = abs.(input) ./ sum(abs.(input))  # Ensures non-negative probabilities summing to 1
 
-    # Output for two residuals
-    residuals = zeros(2)
+    # Calculate the residuals
+    residual = sum(distr .* grid) - target_mean
 
-    # Condition one
-    # residuals = sum(distr .* grid) - target_mean
-    residuals[1] = sum(distr .* grid) - target_mean
-
-    # Condition two
-    residuals[2] = sum(distr) - 1.0
-
-    return residuals
+    return [residual]
 end
 
-
 # Finding a valid initial distribution
-function initial_distr(ngridk::Int64, nstates_id::Int64, k::Array, k_ss::Float64)
-    input = ones((ngridk, nstates_id))
-    f(x) = F_distr(x, k, k_ss)
-    sol = nlsolve(f, input, iterations = 400) # Mostly no more gain after 400 iterations
-    if norm(f(sol.zero)) > 10e-5
+function initial_distr(ngridk::Int64, nstates_id::Int64, asset_grid::Array, asset_target::Float64)
+    input = rand(ngridk, nstates_id)  # Start with random positive numbers
+    f(x) = F_distr(x, asset_grid, asset_target)
+
+    sol = nlsolve(f, input, method=:trust_region, iterations=400)  # Method choice can impact convergence
+
+    if KS.norm(f(sol.zero)) > 1e-5
         println("The initial distribution has an error of:")
         println(f(sol.zero)[:])
     end
-    distr = pdf.(Normal(), sol.zero) ./ sum(pdf.(Normal(), sol.zero))
+
+    # Return the probability distribution
+    distr = abs.(sol.zero) ./ sum(abs.(sol.zero))
     return distr
 end
