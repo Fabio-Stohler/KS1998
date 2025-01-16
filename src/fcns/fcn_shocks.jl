@@ -105,7 +105,7 @@ function shocks_parameters_depreciation()
     # Part that has to be sourced out into a function
     # Assumptions on the risk behavior
     D_g = 8                 # Duration of a good aggregate state
-    D_b = 2                 # Duration of a bad aggregate state
+    D_b = 8                 # Duration of a bad aggregate state
     ur_b = 0.1              # unemployment rate in a bad aggregate state
     er_b = (1 - ur_b)       # employment rate in a bad aggregate state
     ur_g = 0.04             # unemployment rate in a good aggregate state
