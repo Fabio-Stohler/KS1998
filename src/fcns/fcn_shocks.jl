@@ -104,6 +104,8 @@ Function that generates the transition matrix for the aggregate shocks and the t
 function shocks_parameters_depreciation()
     # Part that has to be sourced out into a function
     # Assumptions on the risk behavior
+    D_g = 8                 # Duration of a good aggregate state
+    D_b = 2                 # Duration of a bad aggregate state
     ur_b = 0.1              # unemployment rate in a bad aggregate state
     er_b = (1 - ur_b)       # employment rate in a bad aggregate state
     ur_g = 0.04             # unemployment rate in a good aggregate state
@@ -115,8 +117,8 @@ function shocks_parameters_depreciation()
     D_gg01 = 1.5
 
     # Producing the actual transition matrix
-    π_bb = 0.0 # we assume that the economy never stays in a bad state
-    π_gg = 1 - 0.004 # 0.004 probability of large capital depreciation shock according to Bayer et al. (2024)
+    π_gg = 1 - 1 / D_g
+    π_bb = 1 - 1 / D_b
     Π_ag = [π_bb 1-π_bb; 1-π_gg π_gg]
 
     # Transition conditional on the current state
