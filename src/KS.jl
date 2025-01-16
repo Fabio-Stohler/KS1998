@@ -9,7 +9,7 @@ using LinearAlgebra, Statistics
 using NLsolve, FieldMetadata
 using Parameters, Setfield
 
-export ModelParameters, NumericalParameters, solve_ALM, aggregate_st
+export ModelParameters, NumericalParameters, solve_ALM, solve_ALM_Delta, aggregate_st
 
 # Including all necessary functions
 include("./fcns/include_fcns.jl")
@@ -173,7 +173,7 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
         reshape([npar.er_b, npar.er_g], (1, 1, 1, npar.nstates_ag));
         outer = [npar.ngridk, npar.ngridkm, npar.nstates_id, 1],
     ) # Mesh over employment in states
-    r_t = 1.0 .+ KS.interest(npar.mesh_km, [1.0], L .* mpar.l_bar, npar.mesh_δ, mpar)
+    r_t = 1.0 .+ KS.interest(npar.mesh_km, 1.0, L .* mpar.l_bar, npar.mesh_δ, mpar)
     w_t = KS.wage(npar.mesh_km, ones(size(npar.mesh_k)), L .* mpar.l_bar, mpar)
 
     # Defining income
