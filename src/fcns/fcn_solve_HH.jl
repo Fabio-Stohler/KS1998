@@ -20,13 +20,12 @@ function solve_HH(
     B::Array{Float64,2},
     inc::Vector{Array{Float64,4}},
     r_t::Array{Float64,4},
-    npar::NumericalParameters,
+    npar::Union{NumericalParameters,NumericalParametersDelta},
     mpar::ModelParameters,
     verbose::Bool = false,
 )
-
     # Guess the initial value for rmu
-    rmu = r_t .* mutil(inc[1] .+ (r_t .- 1.0) .* inc[2], mpar)
+    rmu = r_t .* mutil(inc[1] .+ (r_t .- 1.0) .* inc[2] .* (inc[2] .> 0), mpar)
 
     # containers for policies, marginal value functions etc.
     k_star::Array{Float64,4} = similar(rmu)

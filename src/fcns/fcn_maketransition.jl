@@ -4,7 +4,7 @@ function maketransition(
     Z::Int,
     Z_p::Int,
     distr::Array,
-    npar::NumericalParameters,
+    npar::Union{NumericalParameters,NumericalParametersDelta},
 )
     # Setup the distribution
     dPrime = zeros(eltype(distr), size(distr))
