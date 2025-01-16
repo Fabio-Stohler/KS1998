@@ -1,5 +1,5 @@
 """
-    The following repository solves the Krusell and Smith, 1998 JPE economy with a perceived law of motion for the capital stock in the version with exogenous labor supply.
+	The following repository solves the Krusell and Smith, 1998 JPE economy with a perceived law of motion for the capital stock in the version with exogenous labor supply.
 
 Fabio Stohler, University of Bonn, 22. November 2023
 """
@@ -16,8 +16,8 @@ B, km_ts, k_pred, distr, k_prime, c, ag_shock = @time solve_ALM(true, true);
 
 # Figure 1: the aggregate law of motion
 npar = NumericalParameters();
-KS.plot(npar.km, exp.(B[1,1] .+ B[1,2].*log.(npar.km)), label = "Bad times");
-KS.plot!(npar.km, exp.(B[2,1] .+ B[2,2].*log.(npar.km)), label = "Good times");
+KS.plot(npar.km, exp.(B[1, 1] .+ B[1, 2] .* log.(npar.km)), label = "Bad times");
+KS.plot!(npar.km, exp.(B[2, 1] .+ B[2, 2] .* log.(npar.km)), label = "Good times");
 KS.plot!(npar.km, npar.km, label = "45 degree line", linestyle = :dash, color = :black);
 display(KS.plot!(title = "Aggregate Law of Motion", xlabel = "Capital today", ylabel = "Capital tomorrow", legend = :topleft));
 
