@@ -42,9 +42,9 @@ end
 
 	# Meshes for EGM
 	mesh_k::Array{Float64} =
-		repeat(reshape(k, (ngridk, 1, 1, 1)), outer = [1, ngridkm, nstates_ag, nstates_id])
+		repeat(reshape(k, (ngridk, 1, 1, 1)), outer = [1, ngridkm, nstates_id, nstates_ag])
 	mesh_km::Array{Float64} =
-		repeat(reshape(km, (1, ngridkm, 1, 1)), outer = [ngridk, 1, nstates_ag, nstates_id])
+		repeat(reshape(km, (1, ngridkm, 1, 1)), outer = [ngridk, 1, nstates_id, nstates_ag])
 	mesh_a::Array{Float64} =
 		repeat(reshape(a, (1, 1, 1, nstates_ag)), outer = [ngridk, ngridkm, nstates_id, 1])
 	mesh_ϵ::Array{Float64} =
