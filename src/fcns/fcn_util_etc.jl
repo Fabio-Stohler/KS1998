@@ -185,7 +185,7 @@ interest(K::Array, Z::Array, N::Array, mpar::ModelParameters) =
     Z .* mpar.α .* (K ./ N) .^ (mpar.α .- 1.0) .- mpar.δ
 
 @doc raw"""
-    interest(K::AbstractArray, Z::Float, N::AbstractArray, δ::AbstractArray, mpar::ModelParameters)
+    interest(K::AbstractArray, Z::Float64, N::AbstractArray, δ::AbstractArray, mpar::ModelParameters)
 
 Returns interest rate from capital `K`, productivity `Z`, labor `N` and depreciation `δ`.
 
@@ -209,7 +209,7 @@ julia> interest(K, Z, N, δ, mpar)
 # Returns
 - `r::AbstractArray`: interest rate
 """
-interest(K::Array, Z::Float, N::Array, δ::Array, mpar::ModelParameters) =
+interest(K::Array, Z::Float64, N::Array, δ::Array, mpar::ModelParameters) =
     Z .* mpar.α .* (K ./ N) .^ (mpar.α .- 1.0) .- δ
 
 @doc raw"""
