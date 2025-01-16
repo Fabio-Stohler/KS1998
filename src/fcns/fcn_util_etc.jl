@@ -185,6 +185,34 @@ interest(K::Array, Z::Array, N::Array, mpar::ModelParameters) =
     Z .* mpar.α .* (K ./ N) .^ (mpar.α .- 1.0) .- mpar.δ
 
 @doc raw"""
+    interest(K::AbstractArray, Z::Float, N::AbstractArray, δ::AbstractArray, mpar::ModelParameters)
+
+Returns interest rate from capital `K`, productivity `Z`, labor `N` and depreciation `δ`.
+
+# Example
+```julia-repl
+julia> using KS
+julia> mpar = ModelParameters()
+julia> K = range(0.1, 1.0, length = 10)
+julia> Z = 0.5
+julia> N = range(0.1, 1.0, length = 10)
+julia> δ = range(0.1, 1.0, length = 10)
+julia> interest(K, Z, N, δ, mpar)
+
+# Inputs
+- `K::AbstractArray`: capital
+- `Z::Float`: productivity
+- `N::AbstractArray`: labor
+- `δ::AbstractArray`: depreciation
+- `mpar::ModelParameters`: model parameters
+
+# Returns
+- `r::AbstractArray`: interest rate
+"""
+interest(K::Array, Z::Float, N::Array, δ::Array, mpar::ModelParameters) =
+    Z .* mpar.α .* (K ./ N) .^ (mpar.α .- 1.0) .- δ
+
+@doc raw"""
     wage(K::AbstractArray, Z::AbstractArray, N::AbstractArray, mpar::ModelParameters)
 
 Returns wage from capital `K`, productivity `Z` and labor `N`.
