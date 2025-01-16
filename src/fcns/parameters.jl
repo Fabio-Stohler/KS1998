@@ -83,7 +83,7 @@ end
     k_min::Int = 0
     k_max::Int = 250
     km_min::Int = 30
-    km_max::Int = 50
+    km_max::Int = 60
 
     # Number of respective gridspoints
     ngridk::Int = 100
@@ -94,13 +94,14 @@ end
     # Parameters for simulation
     burn_in::Int = 100
     T::Int = 1000 + burn_in
+    δ_δ::Float64 = 0.005
 
     # Actual grids
     k::Array{Float64,1} =
         exp.(range(0; stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
-    δ::Array{Float64,1} = [0.03, mpar.δ]
+    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ - δ_δ]
 
     # Meshes for EGM
     mesh_k::Array{Float64} =
