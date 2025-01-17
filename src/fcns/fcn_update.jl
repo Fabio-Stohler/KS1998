@@ -231,11 +231,11 @@ function update_EVk!(
             Vk[:, :, yy, :, ZZ] .= mylinearinterpolate3(
                 npar.k,
                 km,
-                npar.δ,
+                npar.β,
                 rmu[:, :, yy, :],
                 npar.k,
                 km_prime[ZZ, :],
-                npar.δ,
+                npar.β,
             ) # Considerably faster than looping over all states
         end
     end
