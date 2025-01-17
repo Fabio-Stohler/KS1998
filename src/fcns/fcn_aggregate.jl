@@ -3,7 +3,7 @@ function aggregate_st(
     distr::Array,
     k_prime::Array,
     ag_shock::Array,
-    npar::Union{NumericalParameters,NumericalParametersDelta},
+    npar::Union{NumericalParameters,NumericalParametersDelta,NumericalParametersBeta},
 )
     # Initialize container
     km_ts = zeros(npar.T)
