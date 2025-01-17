@@ -48,6 +48,10 @@ display(
     ),
 );
 
+# Plotting the distribution: All households are essentially like the representative agent
+KS.plot(distr; labels = ["Unemployed" "Employed"], color = [:red :blue]);
+display(KS.plot!(; title = "Distribution", xlabel = "Capital", ylabel = "Density"));
+
 # Calculation of a stochastic steady state
 km_ts_sss, distr_sss = KS.aggregate_st(distr, k_prime, ones.(Integer, npar.T + 1), npar);
 km_ts_new = [km_ts; km_ts_sss];
