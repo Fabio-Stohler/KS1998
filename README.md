@@ -12,6 +12,7 @@ Visit my other repositories for replication files of Krusell and Smith, 1997 Mac
 4. Activate the environment by running `] activate .`.
 5. Check that the environment BASEforHANK is activated by running `] st`.
 6. Instantiate the environment by running `] instantiate`. Potentially re-run this command until completion.
+7. To test the project, run `] test`.
 
 Now, you are ready to use the code.
 
