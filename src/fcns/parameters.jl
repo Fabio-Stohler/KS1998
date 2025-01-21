@@ -201,3 +201,38 @@ end
     # Initial distribution
     distr_init::Array{Float64} = initial_distr(ngridk, nstates_id, k, mpar.k_ss)
 end
+
+@with_kw struct MLParameters
+    # Model parameters set in advance
+    mpar::ModelParameters = ModelParameters()
+
+    # number of input nodes
+    n_input::Int = 2
+
+    # number of hidden layers
+    n_hidden::Int = 1
+
+    # number of nodes in each hidden layer
+    n_nodes::Int = 32
+
+    # number of output nodes
+    n_output::Int = 1
+
+    # number of epochs
+    n_epochs::Int = 1000
+
+    # activation functions (first, second, output layer)
+    act_in::Function = Flux.sigmoid
+    act_mid::Function = Flux.sigmoid
+    act_out::Function = Flux.identity
+
+    # loss function
+    loss_f::Function = Flux.mse
+
+    # optimizer
+    opt::Function = Flux.ADAM
+
+    # learning rate (first, second)
+    lr::Float64 = 0.001
+    lr2::Float64 = 0.00001
+end
