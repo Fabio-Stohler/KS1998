@@ -1,4 +1,5 @@
 # Loads all the necessary functions in the fcns folder
+include("../fcns/parameters.jl")
 include("../fcns/EGM_policyupdate.jl")
 include("../fcns/fcn_FastRoot.jl")
 include("../fcns/fcn_interpols.jl")
@@ -12,4 +13,3 @@ include("../fcns/fcn_shocks.jl")
 include("../fcns/fcn_update.jl")
 include("../fcns/fcn_util_etc.jl")
 include("../fcns/fcn_solve_HH.jl")
-include("../fcns/parameters.jl")
