@@ -252,3 +252,56 @@ function update_EVk!(
         end
     end
 end
+
+function update_EVk!(
+    EVk::Array{Float64,4},
+    Vk::Array{Float64,5},
+    rmu::Array{Float64,4},
+    M::Chain,
+    mpar::ModelParameters,
+    npar::NumericalParameters,
+)
+    # Export necessary arrays
+    km = npar.km
+    Π = npar.Π
+
+    # Interpolate on tomorrows capital stock using the neural network
+    km_prime = zeros(npar.ngridkm, npar.nstates_ag)
+    for id_ag = 1:(npar.nstates_ag)
+        # allocate the predicted data
+        km_prime[:, id_ag] = predict(
+            M,
+            [normalize_k(npar.km', mpar); repeat([npar.a[id_ag]], npar.ngridkm)'],
+            mpar,
+        )
+    end
+
+    # Conditional on todays productivity grid ZZ, interpolate onto tomorrows capital grid
+    # Dependence follows from the LOM which depends on ZZ
+    for yy ∈ 1:(npar.nstates_id) # Tomorrows income grid
+        for ZZ ∈ 1:(npar.nstates_ag) # Todays productivity
+            # Interpolate on tomorrows capital stock
+            Vk[:, :, yy, :, ZZ] .= mylinearinterpolate3(
+                npar.k,
+                km,
+                npar.a,
+                rmu[:, :, yy, :],
+                npar.k,
+                km_prime[:, ZZ],
+                npar.a,
+            ) # Considerably faster than looping over all states
+        end
+    end
+
+    # Taking expectations over the marginal value
+    for yy ∈ 1:(npar.nstates_id) # Current income state
+        for zz ∈ 1:(npar.nstates_ag) # Current aggregate productivity
+            # For each (individual) state today there exist four states tomorrow
+            EVk[:, :, yy, zz] =
+                reshape(
+                    Vk[:, :, :, :, zz],
+                    (npar.ngridk * npar.ngridkm, npar.nstates_ag * npar.nstates_id),
+                ) * Π[(zz .- 1) * 2 + yy, :]
+        end
+    end
+end
