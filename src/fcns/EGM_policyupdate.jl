@@ -50,23 +50,26 @@ function EGM_policyupdate(
     return c_star, k_star
 end
 
-@doc raw"""
+# Create a model using Flux and the parameters in mlpar
+# for each layer add a Dense layer with the number of nodes in mlpar.n_nodes
+"""
     EGM_policyupdate!(c_star, k_star, EMU, c_star_temp, k_star_temp, EVk, r_minus, inc, npar, mpar, warnme)
 
 Find optimal policies, given marginal continuation value `EVk`, today's interest rate `r_minus`, and income `inc`, using the Endogenous Grid Method. EGM_policyupdate! is the same as EGM_policyupdate, but it modifies the inputs in-place.
 
 # Inputs
-- `c_star::Array{Float64, 4}`: optimal (on-grid) policies for consumption [`c`]
-- `k_star::Array{Float64, 4}`: optimal (on-grid) policies for [`k`] asset
-- `EMU::Array{Float64, 4}`: expected marginal utility, defined on the fixed grid
-- `c_star_temp::Array{Float64, 4}`: optimal (off-grid) policies for consumption [`c`]
-- `k_star_temp::Array{Float64, 4}`: optimal (off-grid) policies for [`k`] asset
-- `EVk::Array{Float64, 4}`: marginal continuation value, defined on the fixed grid
-- `r_minus::Array{Float64, 4}`: interest rate, defined on the fixed grid
-- `inc::Array`: income, defined on the fixed grid
-- `npar::NumericalParameters`: numerical parameters
-- `mpar::ModelParameters`: model parameters
-- `warnme::Bool`: whether to warn if non-monotonicity is encountered
+
+  - `c_star::Array{Float64, 4}`: optimal (on-grid) policies for consumption [`c`]
+  - `k_star::Array{Float64, 4}`: optimal (on-grid) policies for [`k`] asset
+  - `EMU::Array{Float64, 4}`: expected marginal utility, defined on the fixed grid
+  - `c_star_temp::Array{Float64, 4}`: optimal (off-grid) policies for consumption [`c`]
+  - `k_star_temp::Array{Float64, 4}`: optimal (off-grid) policies for [`k`] asset
+  - `EVk::Array{Float64, 4}`: marginal continuation value, defined on the fixed grid
+  - `r_minus::Array{Float64, 4}`: interest rate, defined on the fixed grid
+  - `inc::Array`: income, defined on the fixed grid
+  - `npar::NumericalParameters`: numerical parameters
+  - `mpar::ModelParameters`: model parameters
+  - `warnme::Bool`: whether to warn if non-monotonicity is encountered
 """
 function EGM_policyupdate!(
     c_star::Array{Float64,4},

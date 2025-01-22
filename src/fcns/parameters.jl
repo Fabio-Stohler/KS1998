@@ -67,7 +67,7 @@ end
     ϵ_k::Float64 = 1e-10
     ϵ_B::Float64 = 1e-8
     update_B::Float64 = 0.3
-    iter_max::Int = 100
+    iter_max::Int = 30
     iter_max_k::Int = 10000
 
     # Initial distribution
@@ -213,26 +213,26 @@ end
     n_hidden::Int = 1
 
     # number of nodes in each hidden layer
-    n_nodes::Int = 32
+    n_nodes::Int = 16
 
     # number of output nodes
     n_output::Int = 1
 
     # number of epochs
-    n_epochs::Int = 1000
+    n_epochs::Int = 5000
 
     # activation functions (first, second, output layer)
-    act_in::Function = Flux.sigmoid
-    act_mid::Function = Flux.sigmoid
-    act_out::Function = Flux.identity
+    act_in::Function = Flux.relu #softplus
+    act_mid::Function = Flux.relu # softplus
+    act_out::Function = Flux.relu  # softplus
 
-    # loss function
-    loss_f::Function = Flux.mse
+    # Parameter initialization
+    # init::Function = Flux.rand32
 
     # optimizer
     opt::Function = Flux.ADAM
 
     # learning rate (first, second)
     lr::Float64 = 0.001
-    lr2::Float64 = 0.00001
+    lr2::Float64 = lr
 end
