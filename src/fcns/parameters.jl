@@ -219,7 +219,7 @@ end
     n_output::Int = 1
 
     # number of epochs
-    n_epochs::Int = 5000
+    n_epochs::Int = 500
 
     # activation functions (first, second, output layer)
     act_in::Function = Flux.relu #softplus

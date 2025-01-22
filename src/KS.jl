@@ -467,6 +467,7 @@ function solve_ML(plotting = false, plotting_check = false)
 
     # create a vector to store the losses
     losses = Float64[]
+    learning = Float64[]
     lr = mlpar.lr
 
     # Inputs to solve_HH
@@ -537,30 +538,31 @@ function solve_ML(plotting = false, plotting_check = false)
             create_data(km_ts[(npar.burn_in):end], npar.ag_shock[(npar.burn_in):end], mpar)
 
         # define the optimizer
+        lr = mlpar.lr
         opt = Flux.setup(ADAM(lr), model)
 
         # Reduce the number of epochs after the first iteration
-        if length(losses) > 0
-            @set! mlpar.n_epochs = 1000
-        end
-
-        # set the learning rate to a lower value after 1000 iterations
-        if length(losses) == mlpar.n_epochs
-            @set! mlpar.lr = 0.0001
-        end
+        # if length(losses) > 0
+        #     @set! mlpar.n_epochs = 1000
+        # end
 
         # train the neural network
         for epoch = 1:(mlpar.n_epochs)
             # update the learning rate
-            if (length(losses) > 10000) & (length(losses) % 5000 == 0)
-                lr = lr / 10
-                opt = Flux.setup(ADAM(lr), model)
-            elseif ((epoch % 1000 == 0) & (lr > 1e-6))
-                lr = lr / 10
+            # if (length(losses) > 10000) & (length(losses) % 5000 == 0)
+            #     lr = lr / 10
+            #     opt = Flux.setup(ADAM(lr), model)
+            # elseif ((epoch % 1000 == 0) & (lr > 1.0e-8))
+
+            # First round needs to be satisfying and thereafter updates only if the error is decreasing
+
+            if ((epoch % 1000 == 0) & (lr > 1.0e-8))
+                lr = lr / 100
                 opt = Flux.setup(ADAM(lr), model)
             end
             Flux.train!(loss, model, data, opt)
             push!(losses, loss(model, data[1][1], data[1][2]))
+            push!(learning, lr)
         end
         error = losses[end]
 
@@ -578,8 +580,21 @@ function solve_ML(plotting = false, plotting_check = false)
             plot!(k_trained[(npar.burn_in):(end - 1)]; label = "Trained")
 
             # plot the loss
-            plot2 = plot(losses; label = "Loss", yscale = :log10)
-            plot!(plot2; title = "Loss", xlabel = "Iteration", ylabel = "Log. Loss")
+            plot2a = plot(
+                losses;
+                label = "Loss",
+                yscale = :log10,
+                xlabel = "Iteration",
+                ylabel = "Log. Loss",
+            )
+            plot2b = plot!(
+                learning;
+                label = "Learning Rate",
+                xlabel = "Iteration",
+                ylabel = "Learning Rate",
+                yaxis = :right,
+            )
+            plot2 = plot(plot2a, plot2b)
 
             # plot both plots in a single plot
             display(plot(plot1, plot2; layout = (2, 1), size = (900, 600)))
