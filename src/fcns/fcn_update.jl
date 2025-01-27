@@ -317,7 +317,7 @@ function update_EVk!(
             # For each (individual) state today there exist four states tomorrow
             EVk[:, :, yy, zz] =
                 reshape(
-                    npar.mesh_β ./ npar.β[zz] .* Vk[:, :, :, :, zz], # accounting for the discount factor shock
+                    npar.mesh_β ./ npar.mesh_β[1, 1, 1, zz] .* Vk[:, :, :, :, zz], # accounting for the discount factor shock
                     (npar.ngridk * npar.ngridkm, npar.nstates_ag * npar.nstates_id),
                 ) * Π[(zz .- 1) * 2 + yy, :]
         end
