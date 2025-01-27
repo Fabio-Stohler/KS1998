@@ -30,7 +30,7 @@ function solve_ALM(plotting = false, plotting_check = false)
     npar = NumericalParameters()
 
     # Initial guess for the ALM coefficients
-    B = zeros(npar.nstates_ag, npar.nstates_ag)
+    B = zeros(npar.nstates_ag, 2)
     B[:, 1] .= 0.0
     B[:, 2] .= 1.0
 
@@ -175,7 +175,7 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
     npar = NumericalParametersDelta()
 
     # Initial guess for the ALM coefficients
-    B = zeros(npar.nstates_ag, npar.nstates_ag)
+    B = zeros(npar.nstates_ag, 2)
     B[:, 1] .= 0.0
     B[:, 2] .= 1.0
 
@@ -320,7 +320,7 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     npar = NumericalParametersBeta()
 
     # Initial guess for the ALM coefficients
-    B = zeros(npar.nstates_ag, npar.nstates_ag)
+    B = zeros(npar.nstates_ag, 2)
     B[:, 1] .= 0.0
     B[:, 2] .= 1.0
 
@@ -459,13 +459,13 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     npar.ag_shock
 end
 
-function solve_ALM_Delta(plotting = false, plotting_check = false)
+function solve_ALM_All(plotting = false, plotting_check = false)
     # generate structures
     mpar = ModelParameters()
     npar = NumericalParametersAll()
 
     # Initial guess for the ALM coefficients
-    B = zeros(npar.nstates_ag, npar.nstates_ag)
+    B = zeros(npar.nstates_ag, 2)
     B[:, 1] .= 0.0
     B[:, 2] .= 1.0
 
