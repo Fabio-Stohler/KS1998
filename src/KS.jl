@@ -74,10 +74,8 @@ function solve_ALM(plotting = false, plotting_check = false)
         """
         x = log.(km_ts[(npar.burn_in):(end - 1)])[:]
         X = Array(
-            [
-                ones(length(x)) (npar.ag_shock .- 1)[(npar.burn_in):(end - 1)]
-                x (npar.ag_shock .- 1)[(npar.burn_in):(end - 1)].*x
-            ],
+            [ones(length(x)) (npar.ag_shock .- 1)[(npar.burn_in):(end - 1)] x (npar.ag_shock .- 1)[(npar.burn_in):(end - 1)] .*
+                                                                              x],
         )
         y = log.(km_ts[(npar.burn_in + 1):end])[:]
         ols = lm(X, y)
