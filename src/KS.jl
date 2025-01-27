@@ -10,7 +10,14 @@ using NLsolve, FieldMetadata
 using Parameters, Setfield
 
 export ModelParameters,
-    NumericalParameters, solve_ALM, solve_ALM_Delta, solve_ALM_Beta, aggregate_st
+    NumericalParameters,
+    NumericalParametersDelta,
+    NumericalParametersBeta,
+    NumericalParametersAll,
+    solve_ALM,
+    solve_ALM_Delta,
+    solve_ALM_Beta,
+    aggregate_st
 
 # Including all necessary functions
 include("./fcns/include_fcns.jl")
