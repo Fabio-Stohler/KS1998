@@ -77,7 +77,12 @@ function EGM_policyupdate!(
     EVk::Array{Float64,4},
     r_minus::Array{Float64,4},
     inc::Array,
-    npar::Union{NumericalParameters,NumericalParametersDelta,NumericalParametersBeta},
+    npar::Union{
+        NumericalParameters,
+        NumericalParametersBeta,
+        NumericalParametersDelta,
+        NumericalParametersAll,
+    },
     mpar::ModelParameters,
     warnme::Bool,
 )
