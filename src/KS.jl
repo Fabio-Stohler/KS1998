@@ -530,8 +530,19 @@ function solve_ALM_All(plotting = false, plotting_check = false)
         ols = lm(X, y)
         B_new = coef(ols)
         # B_new = inv(X'*X)*(X'*y)
-        B_mat =
-            reshape([B_new[1], B_new[1] + B_new[2], B_new[3], B_new[3] + B_new[4]], (2, 2))
+        B_mat = reshape(
+            [
+                B_new[1],
+                B_new[1] + B_new[2],
+                B_new[1] + B_new[3],
+                B_new[1] + B_new[4],
+                B_new[5],
+                B_new[5] + B_new[6],
+                B_new[5] + B_new[7],
+                B_new[5] + B_new[8],
+            ],
+            (4, 2),
+        )
         dif_B = norm(B_mat - B)
 
         # if iteration % 100 == 0
