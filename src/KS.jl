@@ -123,7 +123,7 @@ function solve_ALM(plotting = false, plotting_check = false)
             for t in range(2; length = npar.T - 1)
                 k_alm[t] = exp(
                     B[npar.ag_shock[t - 1], 1] .+
-                    B[npar.ag_shock[t - 1], 2] * log(k_alm[t - 1]),
+                    B[npar.ag_shock[t - 1], 2] * log(km_ts[t - 1]),
                 )
             end
             plot(km_ts[(npar.burn_in):(end - 1)]; label = "Model")
@@ -139,7 +139,7 @@ function solve_ALM(plotting = false, plotting_check = false)
     k_alm[1] = km_ts[1]
     for t in range(2; length = npar.T - 1)
         k_alm[t] = exp(
-            B[npar.ag_shock[t - 1], 1] .+ B[npar.ag_shock[t - 1], 2] * log(k_alm[t - 1]),
+            B[npar.ag_shock[t - 1], 1] .+ B[npar.ag_shock[t - 1], 2] * log(km_ts[t - 1]),
         )
     end
     if plotting
@@ -266,7 +266,7 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
             for t in range(2; length = npar.T - 1)
                 k_alm[t] = exp(
                     B[npar.ag_shock[t - 1], 1] .+
-                    B[npar.ag_shock[t - 1], 2] * log(k_alm[t - 1]),
+                    B[npar.ag_shock[t - 1], 2] * log(km_ts[t - 1]),
                 )
             end
             plot(km_ts[(npar.burn_in):(end - 1)]; label = "Model")
@@ -282,7 +282,7 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
     k_alm[1] = km_ts[1]
     for t in range(2; length = npar.T - 1)
         k_alm[t] = exp(
-            B[npar.ag_shock[t - 1], 1] .+ B[npar.ag_shock[t - 1], 2] * log(k_alm[t - 1]),
+            B[npar.ag_shock[t - 1], 1] .+ B[npar.ag_shock[t - 1], 2] * log(km_ts[t - 1]),
         )
     end
     if plotting
@@ -409,7 +409,7 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
             for t in range(2; length = npar.T - 1)
                 k_alm[t] = exp(
                     B[npar.ag_shock[t - 1], 1] .+
-                    B[npar.ag_shock[t - 1], 2] * log(k_alm[t - 1]),
+                    B[npar.ag_shock[t - 1], 2] * log(km_ts[t - 1]),
                 )
             end
             plot(km_ts[(npar.burn_in):(end - 1)]; label = "Model")
@@ -425,7 +425,7 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     k_alm[1] = km_ts[1]
     for t in range(2; length = npar.T - 1)
         k_alm[t] = exp(
-            B[npar.ag_shock[t - 1], 1] .+ B[npar.ag_shock[t - 1], 2] * log(k_alm[t - 1]),
+            B[npar.ag_shock[t - 1], 1] .+ B[npar.ag_shock[t - 1], 2] * log(km_ts[t - 1]),
         )
     end
     if plotting
