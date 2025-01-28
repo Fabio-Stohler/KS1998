@@ -131,7 +131,7 @@ function solve_ALM(plotting = false, plotting_check = false)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, "../bld/figures/beta/")
+        plot_simulation(km_ts, k_alm, " with Technology Shocks", "../bld/figures/A/")
     end
     println(
         "The norm between the two series is: ",
@@ -260,7 +260,7 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, "../bld/figures/beta/")
+        plot_simulation(km_ts, k_alm, " with Beta Shocks", "../bld/figures/beta/")
     end
     println(
         "The norm between the two series is: ",
@@ -389,7 +389,7 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, "../bld/figures/beta/")
+        plot_simulation(km_ts, k_alm, " with Delta Shocks", "../bld/figures/delta/")
     end
     println(
         "The norm between the two series is: ",
@@ -541,7 +541,7 @@ function solve_ALM_All(plotting = false, plotting_check = false)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, "../bld/figures/beta/")
+        plot_simulation(km_ts, k_alm, " with All Shocks", "../bld/figures/All/")
     end
     println(
         "The norm between the two series is: ",
