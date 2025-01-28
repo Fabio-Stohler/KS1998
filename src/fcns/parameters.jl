@@ -87,7 +87,7 @@ end
 
     # Number of respective gridspoints
     ngridk::Int = 100
-    ngridkm::Int = 4
+    ngridkm::Int = 8
     nstates_id::Int = 2          # number of states for the idiosyncratic shock
     nstates_ag::Int = 2          # number of states for the aggregate shock
 
@@ -151,7 +151,7 @@ end
 
     # Number of respective gridspoints
     ngridk::Int = 100
-    ngridkm::Int = 4
+    ngridkm::Int = 8
     nstates_id::Int = 2          # number of states for the idiosyncratic shock
     nstates_ag::Int = 2          # number of states for the aggregate shock
 
