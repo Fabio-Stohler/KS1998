@@ -535,13 +535,21 @@ function solve_ALM_All(plotting = false, plotting_check = false)
                 B_new[1],
                 B_new[1] + B_new[2],
                 B_new[1] + B_new[3],
+                B_new[1] + B_new[2] + B_new[3],
                 B_new[1] + B_new[4],
+                B_new[1] + B_new[2] + B_new[4],
+                B_new[1] + B_new[3] + B_new[4],
+                B_new[1] + B_new[2] + B_new[3] + B_new[4],
                 B_new[5],
                 B_new[5] + B_new[6],
                 B_new[5] + B_new[7],
+                B_new[5] + B_new[6] + B_new[7],
                 B_new[5] + B_new[8],
+                B_new[5] + B_new[6] + B_new[8],
+                B_new[5] + B_new[7] + B_new[8],
+                B_new[5] + B_new[6] + B_new[7] + B_new[8],
             ],
-            (4, 2),
+            (npar.nstates_ag, 2),
         )
         dif_B = norm(B_mat - B)
 
@@ -609,6 +617,12 @@ function solve_ALM_All(plotting = false, plotting_check = false)
     println("The coefficients are:")
     println(B[1, 1], " ", B[1, 2])
     println(B[2, 1], " ", B[2, 2])
+    println(B[3, 1], " ", B[3, 2])
+    println(B[4, 1], " ", B[4, 2])
+    println(B[5, 1], " ", B[5, 2])
+    println(B[6, 1], " ", B[6, 2])
+    println(B[7, 1], " ", B[7, 2])
+    println(B[8, 1], " ", B[8, 2])
 
     return B,
     km_ts,
