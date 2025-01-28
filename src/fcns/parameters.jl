@@ -101,7 +101,7 @@ end
         exp.(range(0; stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
-    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ - δ_δ]
+    δ::Array{Float64,1} = [mpar.δ + 1.5 * δ_δ, mpar.δ - δ_δ]
 
     # Meshes for EGM
     mesh_k::Array{Float64} =
@@ -235,7 +235,7 @@ end
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
     a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
     β::Array{Float64,1} = [1.0 + δ_β, 1.0 - δ_β]
-    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ - 2 * δ_δ]
+    δ::Array{Float64,1} = [mpar.δ + 1.5 * δ_δ, mpar.δ - δ_δ]
 
     # Ravel index to map number of state into individual state realization
     indices::Array{Tuple{Int64,Int64,Int64},3} =
