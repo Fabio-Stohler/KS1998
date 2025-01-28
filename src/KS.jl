@@ -166,7 +166,9 @@ function solve_ALM(plotting = false, plotting_check = false)
     distr,
     reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    npar.ag_shock
+    npar.ag_shock,
+    mpar,
+    npar
 end
 
 function solve_ALM_Delta(plotting = false, plotting_check = false)
@@ -311,7 +313,9 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
     distr,
     reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    npar.ag_shock
+    npar.ag_shock,
+    mpar,
+    npar
 end
 
 function solve_ALM_Beta(plotting = false, plotting_check = false)
@@ -456,7 +460,9 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     distr,
     reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    npar.ag_shock
+    npar.ag_shock,
+    mpar,
+    npar
 end
 
 function solve_ALM_All(plotting = false, plotting_check = false)
@@ -630,7 +636,9 @@ function solve_ALM_All(plotting = false, plotting_check = false)
     distr,
     reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
     reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    npar.ag_shock
+    npar.ag_shock,
+    mpar,
+    npar
 end
 
 end
