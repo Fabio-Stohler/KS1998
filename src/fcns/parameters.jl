@@ -75,25 +75,91 @@ end
 end
 
 # Structure containing all grids
-@with_kw struct NumericalParametersDelta
+@with_kw struct NumericalParametersBeta
     # Model parameters set in advance
     mpar::ModelParameters = ModelParameters()
+    npar::NumericalParameters = NumericalParameters()
 
     # Boundaries for asset grids
-    k_min::Int = 0
-    k_max::Int = 250
+    k_min::Int = npar.k_min
+    k_max::Int = npar.k_max
     km_min::Int = 30
     km_max::Int = 60
 
     # Number of respective gridspoints
-    ngridk::Int = 100
-    ngridkm::Int = 8
+    ngridk::Int = npar.ngridk
+    ngridkm::Int = npar.ngridkm
     nstates_id::Int = 2          # number of states for the idiosyncratic shock
     nstates_ag::Int = 2          # number of states for the aggregate shock
 
     # Parameters for simulation
-    burn_in::Int = 100
-    T::Int = 1000 + burn_in
+    burn_in::Int = npar.burn_in
+    T::Int = npar.T
+    δ_β::Float64 = 0.01
+
+    # Actual grids
+    k::Array{Float64,1} =
+        exp.(range(0; stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
+    km::Array{Float64,1} = range(km_min, km_max, ngridkm)
+    ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
+    β::Array{Float64,1} = [1.0 + δ_β, 1.0 - δ_β]
+
+    # Meshes for EGM
+    mesh_k::Array{Float64} =
+        repeat(reshape(k, (ngridk, 1, 1, 1)); outer = [1, ngridkm, nstates_id, nstates_ag])
+    mesh_km::Array{Float64} =
+        repeat(reshape(km, (1, ngridkm, 1, 1)); outer = [ngridk, 1, nstates_id, nstates_ag])
+    mesh_β::Array{Float64} =
+        repeat(reshape(β, (1, 1, 1, nstates_ag)); outer = [ngridk, ngridkm, nstates_id, 1])
+    mesh_ϵ::Array{Float64} =
+        repeat(reshape(ϵ, (1, 1, nstates_id, 1)); outer = [ngridk, ngridkm, 1, nstates_ag])
+
+    # Employment / Unemployment rates
+    ur_b::Float64 = shocks_parameters()[1]
+    er_b::Float64 = shocks_parameters()[2]
+    ur_g::Float64 = shocks_parameters()[3]
+    er_g::Float64 = shocks_parameters()[4]
+
+    # Transition probabilities
+    Π::Matrix{Float64} = shocks_parameters()[5]
+    Π_ag::Matrix{Float64} = shocks_parameters()[6]
+
+    # Series of aggregate shocks
+    seed = npar.seed       # Setting a random seed
+    ag_shock::Array{Int,1} = npar.ag_shock # start from the bad state
+
+    # Convergence Parameters
+    ϵ_k::Float64 = npar.ϵ_k
+    ϵ_B::Float64 = npar.ϵ_B
+    update_B::Float64 = npar.update_B
+    iter_max::Int = npar.iter_max
+    iter_max_k::Int = npar.iter_max_k
+
+    # Initial distribution
+    distr_init::Array{Float64} = npar.distr_init
+end
+
+# Structure containing all grids
+@with_kw struct NumericalParametersDelta
+    # Model parameters set in advance
+    mpar::ModelParameters = ModelParameters()
+    npar::NumericalParameters = NumericalParameters()
+
+    # Boundaries for asset grids
+    k_min::Int = npar.k_min
+    k_max::Int = npar.k_max
+    km_min::Int = 30
+    km_max::Int = 60
+
+    # Number of respective gridspoints
+    ngridk::Int = npar.ngridk
+    ngridkm::Int = npar.ngridkm
+    nstates_id::Int = 2          # number of states for the idiosyncratic shock
+    nstates_ag::Int = 2          # number of states for the aggregate shock
+
+    # Parameters for simulation
+    burn_in::Int = npar.burn_in
+    T::Int = npar.T
     δ_δ::Float64 = 0.0025
 
     # Actual grids
@@ -124,97 +190,34 @@ end
     Π_ag::Matrix{Float64} = shocks_parameters("δ")[6]
 
     # Series of aggregate shocks
-    seed = Random.seed!(123)       # Setting a random seed
-    ag_shock::Array{Int,1} = simulate(MarkovChain(Π_ag), T; init = 1) # start from the bad state
+    seed = npar.seed      # Setting a random seed
+    ag_shock::Array{Int,1} = npar.ag_shock # start from the bad state
 
     # Convergence Parameters
-    ϵ_k::Float64 = 1e-10
-    ϵ_B::Float64 = 1e-8
-    update_B::Float64 = 0.3
-    iter_max::Int = 100
-    iter_max_k::Int = 10000
+    ϵ_k::Float64 = npar.ϵ_k
+    ϵ_B::Float64 = npar.ϵ_B
+    update_B::Float64 = npar.update_B
+    iter_max::Int = npar.iter_max
+    iter_max_k::Int = npar.iter_max_k
 
     # Initial distribution
-    distr_init::Array{Float64} = initial_distr(ngridk, nstates_id, k, mpar.k_ss)
-end
-
-# Structure containing all grids
-@with_kw struct NumericalParametersBeta
-    # Model parameters set in advance
-    mpar::ModelParameters = ModelParameters()
-
-    # Boundaries for asset grids
-    k_min::Int = 0
-    k_max::Int = 250
-    km_min::Int = 30
-    km_max::Int = 60
-
-    # Number of respective gridspoints
-    ngridk::Int = 100
-    ngridkm::Int = 8
-    nstates_id::Int = 2          # number of states for the idiosyncratic shock
-    nstates_ag::Int = 2          # number of states for the aggregate shock
-
-    # Parameters for simulation
-    burn_in::Int = 100
-    T::Int = 1000 + burn_in
-    δ_β::Float64 = 0.005
-
-    # Actual grids
-    k::Array{Float64,1} =
-        exp.(range(0; stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
-    km::Array{Float64,1} = range(km_min, km_max, ngridkm)
-    ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
-    β::Array{Float64,1} = [1.0 + δ_β, 1.0 - δ_β]
-
-    # Meshes for EGM
-    mesh_k::Array{Float64} =
-        repeat(reshape(k, (ngridk, 1, 1, 1)); outer = [1, ngridkm, nstates_id, nstates_ag])
-    mesh_km::Array{Float64} =
-        repeat(reshape(km, (1, ngridkm, 1, 1)); outer = [ngridk, 1, nstates_id, nstates_ag])
-    mesh_β::Array{Float64} =
-        repeat(reshape(β, (1, 1, 1, nstates_ag)); outer = [ngridk, ngridkm, nstates_id, 1])
-    mesh_ϵ::Array{Float64} =
-        repeat(reshape(ϵ, (1, 1, nstates_id, 1)); outer = [ngridk, ngridkm, 1, nstates_ag])
-
-    # Employment / Unemployment rates
-    ur_b::Float64 = shocks_parameters()[1]
-    er_b::Float64 = shocks_parameters()[2]
-    ur_g::Float64 = shocks_parameters()[3]
-    er_g::Float64 = shocks_parameters()[4]
-
-    # Transition probabilities
-    Π::Matrix{Float64} = shocks_parameters()[5]
-    Π_ag::Matrix{Float64} = shocks_parameters()[6]
-
-    # Series of aggregate shocks
-    seed = Random.seed!(123)       # Setting a random seed
-    ag_shock::Array{Int,1} = simulate(MarkovChain(Π_ag), T; init = 1) # start from the bad state
-
-    # Convergence Parameters
-    ϵ_k::Float64 = 1e-10
-    ϵ_B::Float64 = 1e-8
-    update_B::Float64 = 0.3
-    iter_max::Int = 100
-    iter_max_k::Int = 10000
-
-    # Initial distribution
-    distr_init::Array{Float64} = initial_distr(ngridk, nstates_id, k, mpar.k_ss)
+    distr_init::Array{Float64} = npar.distr_init
 end
 
 @with_kw struct NumericalParametersAll
     # Model parameters set in advance
     mpar::ModelParameters = ModelParameters()
+    npar::NumericalParameters = NumericalParameters()
 
     # Boundaries for asset grids
-    k_min::Int = 0
-    k_max::Int = 250
-    km_min::Int = 30
-    km_max::Int = 50
+    k_min::Int = npar.k_min
+    k_max::Int = npar.k_max
+    km_min::Int = npar.km_min
+    km_max::Int = npar.km_max
 
     # Number of respective gridspoints
-    ngridk::Int = 100
-    ngridkm::Int = 8
+    ngridk::Int = npar.ngridk
+    ngridkm::Int = npar.ngridkm
     nstates_id::Int = 2             # number of states for the idiosyncratic shock
     nstates_ag1::Int = 2            # number of productivity states
     nstates_ag2::Int = 2            # number of beta states
@@ -222,8 +225,8 @@ end
     nstates_ag::Int = nstates_ag1 * nstates_ag2 * nstates_ag3        # number of states for the aggregate shock
 
     # Parameters for simulation
-    burn_in::Int = 100
-    T::Int = 1000 + burn_in
+    burn_in::Int = npar.burn_in
+    T::Int = npar.T
     δ_a::Float64 = 0.01
     δ_β::Float64 = 0.005
     δ_δ::Float64 = 0.0025
@@ -282,12 +285,12 @@ end
     δ_shock::Array{Int,1} = unpack_simulation(indices, ag_shock)[3]
 
     # Convergence Parameters
-    ϵ_k::Float64 = 1e-8
-    ϵ_B::Float64 = 1e-8
-    update_B::Float64 = 0.3
-    iter_max::Int = 100
-    iter_max_k::Int = 10000
+    ϵ_k::Float64 = npar.ϵ_k
+    ϵ_B::Float64 = npar.ϵ_B
+    update_B::Float64 = npar.update_B
+    iter_max::Int = npar.iter_max
+    iter_max_k::Int = npar.iter_max_k
 
     # Initial distribution
-    distr_init::Array{Float64} = initial_distr(ngridk, nstates_id, k, mpar.k_ss)
+    distr_init::Array{Float64} = npar.distr_init
 end
