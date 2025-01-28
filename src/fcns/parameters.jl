@@ -94,14 +94,14 @@ end
     # Parameters for simulation
     burn_in::Int = 100
     T::Int = 1000 + burn_in
-    δ_δ::Float64 = 0.005
+    δ_δ::Float64 = 0.0025
 
     # Actual grids
     k::Array{Float64,1} =
         exp.(range(0; stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
-    δ::Array{Float64,1} = [mpar.δ + 1.5 * δ_δ, mpar.δ - δ_δ]
+    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ]
 
     # Meshes for EGM
     mesh_k::Array{Float64} =
@@ -114,14 +114,14 @@ end
         repeat(reshape(ϵ, (1, 1, nstates_id, 1)); outer = [ngridk, ngridkm, 1, nstates_ag])
 
     # Employment / Unemployment rates
-    ur_b::Float64 = shocks_parameters()[1]
-    er_b::Float64 = shocks_parameters()[2]
-    ur_g::Float64 = shocks_parameters()[3]
-    er_g::Float64 = shocks_parameters()[4]
+    ur_b::Float64 = shocks_parameters("δ")[1]
+    er_b::Float64 = shocks_parameters("δ")[2]
+    ur_g::Float64 = shocks_parameters("δ")[3]
+    er_g::Float64 = shocks_parameters("δ")[4]
 
     # Transition probabilities
-    Π::Matrix{Float64} = shocks_parameters()[5]
-    Π_ag::Matrix{Float64} = shocks_parameters()[6]
+    Π::Matrix{Float64} = shocks_parameters("δ")[5]
+    Π_ag::Matrix{Float64} = shocks_parameters("δ")[6]
 
     # Series of aggregate shocks
     seed = Random.seed!(123)       # Setting a random seed
@@ -226,7 +226,7 @@ end
     T::Int = 1000 + burn_in
     δ_a::Float64 = 0.01
     δ_β::Float64 = 0.005
-    δ_δ::Float64 = 0.005
+    δ_δ::Float64 = 0.0025
 
     # Actual grids
     k::Array{Float64,1} =
@@ -235,7 +235,7 @@ end
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
     a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
     β::Array{Float64,1} = [1.0 + δ_β, 1.0 - δ_β]
-    δ::Array{Float64,1} = [mpar.δ + 1.5 * δ_δ, mpar.δ - δ_δ]
+    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ]
 
     # Ravel index to map number of state into individual state realization
     indices::Array{Tuple{Int64,Int64,Int64},3} =
@@ -282,7 +282,7 @@ end
     δ_shock::Array{Int,1} = unpack_simulation(indices, ag_shock)[3]
 
     # Convergence Parameters
-    ϵ_k::Float64 = 1e-10
+    ϵ_k::Float64 = 1e-8
     ϵ_B::Float64 = 1e-8
     update_B::Float64 = 0.3
     iter_max::Int = 100
