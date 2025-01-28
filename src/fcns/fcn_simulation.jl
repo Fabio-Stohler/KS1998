@@ -9,9 +9,9 @@ function simulate_data(km_ts, B, npar)
     return k_alm
 end
 
-function plot_simulation(km_ts, k_alm, path = "")
+function plot_simulation(km_ts, k_alm, label = "", path = "")
     # Plotting the time series of capital
     plot(km_ts[(end - 1001):(end - 1)]; label = "Model")
     plot!(k_alm[(end - 1001):(end - 1)]; label = "ALM")
-    display(plot!(; title = "Capital series", xlabel = "Time", ylabel = "Capital"))
+    display(plot!(; title = "Capital series" * label, xlabel = "Time", ylabel = "Capital"))
 end
