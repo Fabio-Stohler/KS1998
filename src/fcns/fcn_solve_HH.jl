@@ -20,7 +20,12 @@ function solve_HH(
     B::Array{Float64,2},
     inc::Vector{Array{Float64,4}},
     r_t::Array{Float64,4},
-    npar::Union{NumericalParameters,NumericalParametersDelta,NumericalParametersBeta},
+    npar::Union{
+        NumericalParameters,
+        NumericalParametersBeta,
+        NumericalParametersDelta,
+        NumericalParametersAll,
+    },
     mpar::ModelParameters,
     verbose::Bool = false,
 )
@@ -79,5 +84,8 @@ function solve_HH(
         end
     end
     println("EGM Iterations: ", count)
+    if count == npar.iter_max_k
+        println("Error in EGM iterations: ", dist)
+    end
     return c_star, k_star
 end
