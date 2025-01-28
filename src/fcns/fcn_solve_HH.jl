@@ -84,5 +84,8 @@ function solve_HH(
         end
     end
     println("EGM Iterations: ", count)
+    if count == npar.iter_max_k
+        println("Error in EGM iterations: ", dist)
+    end
     return c_star, k_star
 end
