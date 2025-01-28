@@ -228,7 +228,7 @@ end
     burn_in::Int = npar.burn_in
     T::Int = npar.T
     δ_a::Float64 = 0.01
-    δ_β::Float64 = 0.005
+    δ_β::Float64 = 0.01
     δ_δ::Float64 = 0.0025
 
     # Actual grids
