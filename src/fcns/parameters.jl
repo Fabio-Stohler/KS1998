@@ -165,7 +165,7 @@ end
         exp.(range(0; stop = log(k_max - k_min + 1.0), length = ngridk)) .+ k_min .- 1.0
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
-    β::Array{Float64,1} = [mpar.β + δ_β, mpar.β - δ_β]
+    β::Array{Float64,1} = [1.0 + δ_β, 1.0 - δ_β]
 
     # Meshes for EGM
     mesh_k::Array{Float64} =
@@ -214,7 +214,7 @@ end
 
     # Number of respective gridspoints
     ngridk::Int = 100
-    ngridkm::Int = 4
+    ngridkm::Int = 8
     nstates_id::Int = 2             # number of states for the idiosyncratic shock
     nstates_ag1::Int = 2            # number of productivity states
     nstates_ag2::Int = 2            # number of beta states
@@ -234,8 +234,8 @@ end
     km::Array{Float64,1} = range(km_min, km_max, ngridkm)
     ϵ::Array{Float64,1} = range(0.0, nstates_id - 1.0)
     a::Array{Float64,1} = [1 - δ_a, 1 + δ_a]
-    β::Array{Float64,1} = [mpar.β + δ_β, mpar.β - δ_β]
-    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ - δ_δ]
+    β::Array{Float64,1} = [1.0 + δ_β, 1.0 - δ_β]
+    δ::Array{Float64,1} = [mpar.δ + δ_δ, mpar.δ - 2 * δ_δ]
 
     # Ravel index to map number of state into individual state realization
     indices::Array{Tuple{Int64,Int64,Int64},3} =
