@@ -14,4 +14,9 @@ function plot_simulation(km_ts, k_alm, label = "", path = "")
     plot(km_ts[(end - 1001):(end - 1)]; label = "Model")
     plot!(k_alm[(end - 1001):(end - 1)]; label = "ALM")
     display(plot!(; title = "Capital series" * label, xlabel = "Time", ylabel = "Capital"))
+
+    # Saving the plot
+    if path != ""
+        savefig(path * "Capital series" * label * ".png")
+    end
 end
