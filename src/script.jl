@@ -48,7 +48,7 @@ display(
 );
 
 # Plotting the distribution: All households are essentially like the representative agent
-KS.plot(distr; labels = ["Unemployed" "Employed"], color = [:red :blue]);
+KS.plot(npar.k, distr; labels = ["Unemployed" "Employed"], color = [:red :blue]);
 display(KS.plot!(; title = "Distribution", xlabel = "Capital", ylabel = "Density"));
 
 # Calculation of a stochastic steady state
