@@ -8,6 +8,7 @@ using Interpolations, GLM
 using LinearAlgebra, Statistics
 using NLsolve, FieldMetadata
 using Parameters, Setfield
+using FileIO, JLD2
 
 export ModelParameters,
     NumericalParameters,
@@ -18,7 +19,9 @@ export ModelParameters,
     solve_ALM_Delta,
     solve_ALM_Beta,
     solve_ALM_All,
-    aggregate_st
+    aggregate_st,
+    simulate_aggregates,
+    simulate_and_save
 
 # Including all necessary functions
 include("./fcns/include_fcns.jl")
@@ -140,6 +143,9 @@ function solve_ALM(plotting = false, plotting_check = false)
     println("The coefficients are:")
     println(B[1, 1], " ", B[1, 2])
     println(B[2, 1], " ", B[2, 2])
+
+    # Generate time series of all aggregate variables and save them
+    simulate_and_save(distr, c, k1, npar.ag_shock, mpar, npar, "technology")
 
     return B,
     km_ts,
@@ -270,6 +276,9 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     println(B[1, 1], " ", B[1, 2])
     println(B[2, 1], " ", B[2, 2])
 
+    # Generate time series of all aggregate variables and save them
+    simulate_and_save(distr, c, k1, npar.ag_shock, mpar, npar, "beta")
+
     return B,
     km_ts,
     k_alm,
@@ -398,6 +407,9 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
     println("The coefficients are:")
     println(B[1, 1], " ", B[1, 2])
     println(B[2, 1], " ", B[2, 2])
+
+    # Generate time series of all aggregate variables and save them
+    simulate_and_save(distr, c, k1, npar.ag_shock, mpar, npar, "delta")
 
     return B,
     km_ts,
