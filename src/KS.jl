@@ -120,21 +120,26 @@ function solve_ALM(plotting = false, plotting_check = false)
         # Plotting the results
         if plotting_check
             # Generate time series of capital
-            k_alm = simulate_data(km_ts, B, npar)
+            k_alm = pereceived_capital_stock(km_ts, B, npar)
 
             # plot the results
-            plot_simulation(km_ts, k_alm)
+            plot_perceived_capital_stock(km_ts, k_alm)
         end
         B = B_mat .* npar.update_B .+ B .* (1 .- npar.update_B) # update the vector of ALM coefficients
         iteration += 1
     end
 
     # Generate time series of capital
-    k_alm = simulate_data(km_ts, B, npar)
+    k_alm = pereceived_capital_stock(km_ts, B, npar)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, " with Technology Shocks", "../bld/figures/")
+        plot_perceived_capital_stock(
+            km_ts,
+            k_alm,
+            " with Technology Shocks",
+            "../bld/figures/",
+        )
     end
     println(
         "The norm between the two series is: ",
@@ -252,21 +257,21 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
         # Plotting the results
         if plotting_check
             # Generate time series of capital
-            k_alm = simulate_data(km_ts, B, npar)
+            k_alm = pereceived_capital_stock(km_ts, B, npar)
 
             # plot the results
-            plot_simulation(km_ts, k_alm)
+            plot_perceived_capital_stock(km_ts, k_alm)
         end
         B = B_mat .* npar.update_B .+ B .* (1 .- npar.update_B) # update the vector of ALM coefficients
         iteration += 1
     end
 
     # Generate time series of capital
-    k_alm = simulate_data(km_ts, B, npar)
+    k_alm = pereceived_capital_stock(km_ts, B, npar)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, " with Beta Shocks", "../bld/figures/")
+        plot_perceived_capital_stock(km_ts, k_alm, " with Beta Shocks", "../bld/figures/")
     end
     println(
         "The norm between the two series is: ",
@@ -384,21 +389,21 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
         # Plotting the results
         if plotting_check
             # Generate time series of capital
-            k_alm = simulate_data(km_ts, B, npar)
+            k_alm = pereceived_capital_stock(km_ts, B, npar)
 
             # plot the results
-            plot_simulation(km_ts, k_alm)
+            plot_perceived_capital_stock(km_ts, k_alm)
         end
         B = B_mat .* npar.update_B .+ B .* (1 .- npar.update_B) # update the vector of ALM coefficients
         iteration += 1
     end
 
     # Generate time series of capital
-    k_alm = simulate_data(km_ts, B, npar)
+    k_alm = pereceived_capital_stock(km_ts, B, npar)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, " with Delta Shocks", "../bld/figures/")
+        plot_perceived_capital_stock(km_ts, k_alm, " with Delta Shocks", "../bld/figures/")
     end
     println(
         "The norm between the two series is: ",
@@ -539,21 +544,21 @@ function solve_ALM_All(plotting = false, plotting_check = false)
         # Plotting the results
         if plotting_check
             # Generate time series of capital
-            k_alm = simulate_data(km_ts, B, npar)
+            k_alm = pereceived_capital_stock(km_ts, B, npar)
 
             # plot the results
-            plot_simulation(km_ts, k_alm)
+            plot_perceived_capital_stock(km_ts, k_alm)
         end
         B = B_mat .* npar.update_B .+ B .* (1 .- npar.update_B) # update the vector of ALM coefficients
         iteration += 1
     end
 
     # Generate time series of capital
-    k_alm = simulate_data(km_ts, B, npar)
+    k_alm = pereceived_capital_stock(km_ts, B, npar)
 
     if plotting
         # Plotting the results
-        plot_simulation(km_ts, k_alm, " with All Shocks", "../bld/figures/")
+        plot_perceived_capital_stock(km_ts, k_alm, " with All Shocks", "../bld/figures/")
     end
     println(
         "The norm between the two series is: ",
