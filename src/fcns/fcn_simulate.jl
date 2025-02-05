@@ -34,7 +34,12 @@ function simulate_aggregates(
     k_prime::Array,
     ag_shock::Array,
     mpar::ModelParameters,
-    npar::NumericalParameters,
+    npar::Union{
+        NumericalParameters,
+        NumericalParametersBeta,
+        NumericalParametersDelta,
+        NumericalParametersAll,
+    },
 )
     # Initialize container
     K_ts = zeros(npar.T)
@@ -98,7 +103,12 @@ function simulate_and_save(
     k_prime::Array,
     ag_shock::Array,
     mpar::ModelParameters,
-    npar::NumericalParameters,
+    npar::Union{
+        NumericalParameters,
+        NumericalParametersBeta,
+        NumericalParametersDelta,
+        NumericalParametersAll,
+    },
     name = "simulated_data",
     path = "../bld/data/",
 )
