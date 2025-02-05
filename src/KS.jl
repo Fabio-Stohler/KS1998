@@ -150,14 +150,14 @@ function solve_ALM(plotting = false, plotting_check = false)
     println(B[2, 1], " ", B[2, 2])
 
     # Generate time series of all aggregate variables and save them
-    simulate_and_save(distr, c, k1, npar.ag_shock, mpar, npar, "technology")
+    simulate_and_save(distr, c, k1, mpar, npar, "technology")
 
     return B,
     km_ts,
     k_alm,
     distr,
-    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
+    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
+    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
     npar.ag_shock,
     mpar,
     npar
@@ -167,6 +167,8 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     # generate structures
     mpar = ModelParameters()
     npar = NumericalParametersBeta()
+    npartech = NumericalParameters()
+    A = npartech.a[2]
 
     # Initial guess for the ALM coefficients
     B = zeros(npar.nstates_ag, 2)
@@ -174,12 +176,13 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     B[:, 2] .= 1.0
 
     # Inputs to solve_HH
+    # Labor supply is always in the good state
     L = repeat(
-        reshape([npar.er_b, npar.er_g], (1, 1, 1, npar.nstates_ag));
+        reshape([npar.er_g, npar.er_g], (1, 1, 1, npar.nstates_ag));
         outer = [npar.ngridk, npar.ngridkm, npar.nstates_id, 1],
     ) # Mesh over employment in states
-    r_t = 1.0 .+ KS.interest(npar.mesh_km, [1.0], L .* mpar.l_bar, mpar)
-    w_t = KS.wage(npar.mesh_km, ones(size(npar.mesh_k)), L .* mpar.l_bar, mpar)
+    r_t = 1.0 .+ KS.interest(npar.mesh_km, [A], L .* mpar.l_bar, mpar)
+    w_t = KS.wage(npar.mesh_km, ones(size(npar.mesh_k)) * A, L .* mpar.l_bar, mpar)
 
     # Defining income
     inc::Array = [
@@ -282,14 +285,14 @@ function solve_ALM_Beta(plotting = false, plotting_check = false)
     println(B[2, 1], " ", B[2, 2])
 
     # Generate time series of all aggregate variables and save them
-    simulate_and_save(distr, c, k1, npar.ag_shock, mpar, npar, "beta")
+    simulate_and_save(distr, c, k1, mpar, npar, "beta")
 
     return B,
     km_ts,
     k_alm,
     distr,
-    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
+    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
+    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
     npar.ag_shock,
     mpar,
     npar
@@ -299,6 +302,8 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
     # generate structures
     mpar = ModelParameters()
     npar = NumericalParametersDelta()
+    npartech = NumericalParameters()
+    A = npartech.a[2]
 
     # Initial guess for the ALM coefficients
     B = zeros(npar.nstates_ag, 2)
@@ -307,11 +312,11 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
 
     # Inputs to solve_HH
     L = repeat(
-        reshape([npar.er_b, npar.er_g], (1, 1, 1, npar.nstates_ag));
+        reshape([npar.er_g, npar.er_g], (1, 1, 1, npar.nstates_ag));
         outer = [npar.ngridk, npar.ngridkm, npar.nstates_id, 1],
     ) # Mesh over employment in states
-    r_t = 1.0 .+ KS.interest(npar.mesh_km, 1.0, L .* mpar.l_bar, npar.mesh_δ, mpar)
-    w_t = KS.wage(npar.mesh_km, ones(size(npar.mesh_k)), L .* mpar.l_bar, mpar)
+    r_t = 1.0 .+ KS.interest(npar.mesh_km, A, L .* mpar.l_bar, npar.mesh_δ, mpar)
+    w_t = KS.wage(npar.mesh_km, ones(size(npar.mesh_k)) * A, L .* mpar.l_bar, mpar)
 
     # Defining income
     inc::Array = [
@@ -414,14 +419,14 @@ function solve_ALM_Delta(plotting = false, plotting_check = false)
     println(B[2, 1], " ", B[2, 2])
 
     # Generate time series of all aggregate variables and save them
-    simulate_and_save(distr, c, k1, npar.ag_shock, mpar, npar, "delta")
+    simulate_and_save(distr, c, k1, mpar, npar, "delta")
 
     return B,
     km_ts,
     k_alm,
     distr,
-    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
+    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
+    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
     npar.ag_shock,
     mpar,
     npar
@@ -574,12 +579,15 @@ function solve_ALM_All(plotting = false, plotting_check = false)
     println(B[7, 1], " ", B[7, 2])
     println(B[8, 1], " ", B[8, 2])
 
+    # Generate time series of all aggregate variables and save them
+    simulate_and_save(distr, c, k1, mpar, npar, "all")
+
     return B,
     km_ts,
     k_alm,
     distr,
-    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
-    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_ag, npar.nstates_id)),
+    reshape(k1, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
+    reshape(c, (npar.ngridk, npar.ngridkm, npar.nstates_id, npar.nstates_ag)),
     npar.ag_shock,
     mpar,
     npar
