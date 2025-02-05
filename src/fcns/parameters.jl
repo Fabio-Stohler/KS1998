@@ -115,14 +115,14 @@ end
         repeat(reshape(ϵ, (1, 1, nstates_id, 1)); outer = [ngridk, ngridkm, 1, nstates_ag])
 
     # Employment / Unemployment rates
-    ur_b::Float64 = shocks_parameters()[1]
-    er_b::Float64 = shocks_parameters()[2]
-    ur_g::Float64 = shocks_parameters()[3]
-    er_g::Float64 = shocks_parameters()[4]
+    ur_b::Float64 = shocks_parameters("β")[1]
+    er_b::Float64 = shocks_parameters("β")[2]
+    ur_g::Float64 = shocks_parameters("β")[3]
+    er_g::Float64 = shocks_parameters("β")[4]
 
     # Transition probabilities
-    Π::Matrix{Float64} = shocks_parameters()[5]
-    Π_ag::Matrix{Float64} = shocks_parameters()[6]
+    Π::Matrix{Float64} = shocks_parameters("β")[5]
+    Π_ag::Matrix{Float64} = shocks_parameters("β")[6]
 
     # Series of aggregate shocks
     seed = npar.seed       # Setting a random seed
