@@ -26,7 +26,7 @@ function maketransition(
     # a_prime_t = itp(k, K, npar.ϵ)
 
     # Creating interpolation bounds
-    idm_n, wR_m_n = MakeWeightsLight(a_prime_t, npar.k)
+    idm_n, wR_m_n = MakeWeightsLight(a_prime_t[:, 1, :], npar.k)
     blockindex = (0:(npar.nstates_id - 1)) * npar.ngridk
     @views @inbounds begin
         for aa ∈ 1:(npar.ngridk) # all current capital states

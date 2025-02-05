@@ -1,7 +1,7 @@
 """
     The following repository solves the Krusell and Smith, 1998 JPE economy with a perceived law of motion for the capital stock in the version with exogenous labor supply.
 
-Fabio Stohler, University of Bonn, 22. November 2023
+Fabio Stohler, University of Bonn, 28. January 2025
 """
 
 # setting the correct working directory
@@ -12,7 +12,7 @@ push!(LOAD_PATH, pwd())
 using KS, Revise
 
 # Solving for the aggregate law of motion
-B, km_ts, k_pred, distr, k_prime, c, ag_shock, mpar, npar = @time solve_ALM(true, true);
+B, km_ts, k_pred, distr, k_prime, c, ag_shock, mpar, npar = @time solve_ALM(true);
 
 # Figure 1: the aggregate law of motion
 KS.plot(npar.km, exp.(B[1, 1] .+ B[1, 2] .* log.(npar.km)); label = "Bad times");
@@ -48,7 +48,7 @@ display(
 );
 
 # Plotting the distribution: All households are essentially like the representative agent
-KS.plot(distr; labels = ["Unemployed" "Employed"], color = [:red :blue]);
+KS.plot(npar.k, distr; labels = ["Unemployed" "Employed"], color = [:red :blue]);
 display(KS.plot!(; title = "Distribution", xlabel = "Capital", ylabel = "Density"));
 
 # Calculation of a stochastic steady state
